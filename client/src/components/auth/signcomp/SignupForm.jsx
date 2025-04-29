@@ -1,13 +1,70 @@
 import { useBoolToggle } from "react-haiku";
 import { Eye, EyeClosed } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import toast from "react-hot-toast";
+import axiosInstance from "../../../utils/axiosConfig";
+import { useEffect } from "react";
+import { useForm } from "react-hook-form";
+import { signupSchema } from "@/utils/Validation";
+import { zodResolver } from "@hookform/resolvers/zod";
 
-export default function SignupForm({ register, errors, watch }) {
-    const [show, setShow] = useBoolToggle();
+export default function SignupForm() {
+  const {
+    register,
+    watch,
+    setValue,
+    formState: { errors },
+    handleSubmit,
+  } = useForm({
+    resolver: zodResolver(signupSchema),
+    defaultValues: {
+      firstName: "",
+      lastName: "",
+      email: "",
+      password: "",
+      role: "user",
+    },
+  });
+  const [show, setShow] = useBoolToggle();
+  const router = useNavigate();
+  const query = new URLSearchParams(useLocation().search);
+  const getRole = query.get("role");
+
+  const onSubmit = async (data) => {
+    if (data) {
+      const toastId = toast.loading("Saving details...");
+      try {
+        const response = await axiosInstance.post("auth/register", data);
+        if (response.status === 200) {
+          toast.success("Account created successfully", { id: toastId });
+          router("/login");
+        } else {
+          toast.error("Account creation failed", { id: toastId });
+        }
+        console.log(response);
+      } catch (error) {
+        toast.error(error.response.data.msg, { id: toastId });
+        console.log(error);
+      }
+    }
+  };
+  
+  useEffect(() => {
+    if(getRole){
+      setValue("role", getRole);
+    }else{
+      router('/role-selection')
+    }
+  }, []);
   return (
     <div className="flex flex-col items-center gap-y-5 w-full">
-      <h1 className="text-4xl font-bold uppercase p-3">Signin as {watch("role")}</h1>
-      <form className="flex flex-col w-full gap-y-5">
+      <h1 className="text-4xl font-bold uppercase py-2 px-3">
+        Signin as {watch("role")}
+      </h1>
+      <form
+        className="flex flex-col w-full gap-y-5"
+        onSubmit={handleSubmit(onSubmit)}
+      >
         <div className="flex sm:flex-row flex-col sm:*:w-1/2 *:w-full gap-x-3">
           <div className="flex flex-col">
             <div className="flex flex-col relative">

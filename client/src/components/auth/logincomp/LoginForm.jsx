@@ -4,8 +4,10 @@ import { useBoolToggle } from "react-haiku";
 import { FcGoogle } from "react-icons/fc";
 import { FaSlack } from "react-icons/fa";
 import { Eye, EyeClosed } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { loginSchema } from "../../../utils/Validation";
+import toast from "react-hot-toast";
+import axiosInstance from "../../../utils/axiosConfig";
 
 export default function LoginForm({tabs, setTabs}) {
   const {
@@ -17,10 +19,29 @@ export default function LoginForm({tabs, setTabs}) {
     resolver: zodResolver(loginSchema),
   });
   const [show, setShow] = useBoolToggle();
+  const router = useNavigate();
+
+  const onSubmit = async (data) => {
+    if(data){
+      const toastId = toast.loading("Checking credentials...");
+      try {
+        const response = await axiosInstance.post("auth/login", data);
+        if(response.status === 200){
+          toast.success("Welcome user!", {id: toastId});
+          router("/");
+        }else{
+          toast.error("Login failed", {id: toastId});
+        }
+      } catch (error) {
+        toast.error(error.response.data.msg, {id: toastId});
+        console.log(error);
+      }
+    }
+  }
   return (
     <div className="flex flex-col items-center gap-y-5 w-full">
       <h1 className="text-4xl font-bold uppercase p-3">Welcome</h1>
-      <form className="flex flex-col w-full gap-y-5">
+      <form className="flex flex-col w-full gap-y-5" onSubmit={handleSubmit(onSubmit)}>
         <div className="flex flex-col">
           <div className="flex flex-col relative">
             <label htmlFor="email" className={`capitalize translate-x-4`}>
@@ -61,8 +82,15 @@ export default function LoginForm({tabs, setTabs}) {
               )}
             </span>
           </div>
-          <div className="flex justify-end px-4">
-            <button type="button" className="text-sm cursor-pointer" onClick={() => setTabs({personalInfo: false, forgotPassword: true})}>
+          <div className="flex justify-between ">
+          <p
+            className={`${
+              errors?.password ? `visible` : `invisible`
+            } pl-2 text-red-500 text-sm`}
+          >
+            {errors?.password?.message || `Error`}
+          </p>
+            <button type="button" className="text-sm cursor-pointer" onClick={() => setTabs({...tabs, loginInfo: false, forgotPassword: true})}>
               Forgot Password?
             </button>
           </div>
@@ -101,7 +129,7 @@ export default function LoginForm({tabs, setTabs}) {
           </div>
           <p className="text-[var(--lightText)] text-md">
             New user?{" "}
-            <Link to="/signup" className="text-[var(--dark-btn)] font-semibold">
+            <Link to="/role-selection" className="text-[var(--dark-btn)] font-semibold">
               Sign up
             </Link>
           </p>

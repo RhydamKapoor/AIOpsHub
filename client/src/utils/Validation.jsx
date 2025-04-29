@@ -32,6 +32,11 @@ export const passwordVerificationSchema = z
                                             message: "Enter the password",
                                           });
 
+export const invitationSchema = z.object({
+  email: emailVerificationSchema,
+  role: z.string()
+})
+
 export const signupSchema = z.object({
     firstName: nameSchema,
     lastName: nameSchema,
