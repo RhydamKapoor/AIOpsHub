@@ -4,11 +4,6 @@ const SlackStrategy = require('passport-slack-oauth2').Strategy;
 const User = require('../models/User');
 const crypto = require('crypto');
 
-// Debug: Log environment variables
-console.log('GOOGLE_CLIENT_ID:', process.env.GOOGLE_CLIENT_ID);
-console.log('GOOGLE_CLIENT_SECRET:', process.env.GOOGLE_CLIENT_SECRET);
-console.log('SLACK_CLIENT_ID:', process.env.SLACK_CLIENT_ID);
-console.log('SLACK_CLIENT_SECRET:', process.env.SLACK_CLIENT_SECRET);
 
 // Set default values if environment variables are missing
 const googleClientId = process.env.GOOGLE_CLIENT_ID || 'dummy_google_client_id';
