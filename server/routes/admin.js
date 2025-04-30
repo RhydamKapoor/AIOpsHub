@@ -5,6 +5,6 @@ const router = express.Router();
 
 router.get("/allUsers", auth, allUsers );
 router.post("/sendInvitation", auth, sendInvitation );
-router.post("/changeRole", changeRole );
+router.post("/changeRole",auth, changeRole );
 
 module.exports = router;
