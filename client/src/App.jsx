@@ -15,6 +15,7 @@ import HistoryAnalytics from "./pages/Dashboard/HistoryAnalytics";
 import Settings from "./pages/Dashboard/Settings";
 import ManageRoles from "./pages/Dashboard/ManageRoles";
 import RoleAssign from "./pages/Auth/RoleAssign";
+import AuthSuccess from "./pages/Auth/AuthSuccess";
 
 function App() {
   return (
@@ -24,6 +25,7 @@ function App() {
         <Route path="login" element={<PublicRoutes><Login /></PublicRoutes>} />
         <Route path="role-selection" element={<PublicRoutes><RoleAssign /></PublicRoutes>} />
         <Route path="signup" element={<PublicRoutes><Signup /></PublicRoutes>} />
+        <Route path="auth-success" element={<PublicRoutes><AuthSuccess /></PublicRoutes>} />
 
         <Route path="dashboard" element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
           <Route index element={<Dashboard />} />

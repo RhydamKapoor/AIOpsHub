@@ -38,6 +38,15 @@ export default function LoginForm({tabs, setTabs}) {
       }
     }
   }
+
+  const handleGoogleLogin = () => {
+    window.location.href = `${import.meta.env.VITE_API_BASE_URL}/auth/google`;
+  };
+
+  const handleSlackLogin = () => {
+    window.location.href = `${import.meta.env.VITE_API_BASE_URL}/auth/slack`;
+  };
+
   return (
     <div className="flex flex-col items-center gap-y-5 w-full">
       <h1 className="text-4xl font-bold uppercase p-3">Welcome</h1>
@@ -114,6 +123,7 @@ export default function LoginForm({tabs, setTabs}) {
           <div className="flex max-[1160px]:flex-col items-center justify-center w-full *:w-1/2 max-[1160px]:*:w-full text-sm gap-x-5 gap-y-3 *:cursor-pointer *:bg-[var(--color-base-300)] *:text-[var(--color-base-content)]">
             <button
               type="button"
+              onClick={handleGoogleLogin}
               className="w-full flex justify-center items-center gap-x-2 text-white py-2.5 px-2 rounded-full border"
             >
               <FcGoogle className="text-lg" />
@@ -121,6 +131,7 @@ export default function LoginForm({tabs, setTabs}) {
             </button>
             <button
               type="button"
+              onClick={handleSlackLogin}
               className="w-full flex justify-center items-center gap-x-2 text-white py-2.5 px-2 rounded-full border"
             >
               <FaSlack className="text-purple-600 text-lg" />

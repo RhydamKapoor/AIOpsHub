@@ -168,3 +168,61 @@ exports.createNewPassword = async (req, res) => {
     res.status(500).json({ msg: err.message });
   }
 };
+
+// Google authentication success handler
+exports.googleAuthCallback = async (req, res) => {
+  try {
+    // This will be called after passport has authenticated the user
+    const user = req.user;
+
+    // Remove sensitive data before sending response
+    const { password: _, ...userWithoutPassword } = user._doc;
+
+    const token = jwt.sign({ details: userWithoutPassword }, process.env.JWT_SECRET, {
+      expiresIn: "1d",
+    });
+
+    // Set the token in an HTTP-only cookie
+    res.cookie('token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'lax',
+      maxAge: 24 * 60 * 60 * 1000, // 1 day in milliseconds
+      path: '/'
+    });
+
+    // Redirect to frontend
+    res.redirect(`${process.env.CLIENT_DEV || process.env.CLIENT_PROD}/auth-success`);
+  } catch (err) {
+    res.status(500).json({ msg: err.message });
+  }
+};
+
+// Slack authentication success handler
+exports.slackAuthCallback = async (req, res) => {
+  try {
+    // This will be called after passport has authenticated the user
+    const user = req.user;
+
+    // Remove sensitive data before sending response
+    const { password: _, ...userWithoutPassword } = user._doc;
+
+    const token = jwt.sign({ details: userWithoutPassword }, process.env.JWT_SECRET, {
+      expiresIn: "1d",
+    });
+
+    // Set the token in an HTTP-only cookie
+    res.cookie('token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'lax',
+      maxAge: 24 * 60 * 60 * 1000, // 1 day in milliseconds
+      path: '/'
+    });
+
+    // Redirect to frontend
+    res.redirect(`${process.env.CLIENT_DEV || process.env.CLIENT_PROD}/auth-success`);
+  } catch (err) {
+    res.status(500).json({ msg: err.message });
+  }
+};

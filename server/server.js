@@ -1,24 +1,39 @@
+// Load environment variables first
+const dotenv = require('dotenv');
+dotenv.config();
+
 const express = require('express');
 const cors = require('cors');
-const dotenv = require('dotenv');
 const cookieParser = require('cookie-parser');
+const passport = require('passport');
 const authRoutes = require('./routes/auth');
 const adminRoutes = require('./routes/admin');
 const connectDB = require('./config/db');
-
-dotenv.config();
+// Load passport config
+require('./config/passport');
 
 const app = express();
 
+
+const allowedOrigins = [process.env.CLIENT_DEV, process.env.CLIENT_PROD];
 // Middleware
 app.use(cors({
-    origin: process.env.CORS_ORIGIN,
+    origin: function (origin, callback) {
+        if (!origin || allowedOrigins.includes(origin)) {
+          callback(null, true);
+        } else {
+          callback(new Error('CORS not allowed'));
+        }
+      },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization']
 }));
 app.use(express.json());
 app.use(cookieParser());
+
+// Initialize passport
+app.use(passport.initialize());
 
 // Connect to MongoDB
 connectDB();

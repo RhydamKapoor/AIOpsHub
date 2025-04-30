@@ -22,6 +22,14 @@ const userSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
+    googleId: {
+        type: String,
+        sparse: true
+    },
+    slackId: {
+        type: String,
+        sparse: true
+    },
     role: {
         type: String,
         required: true,
