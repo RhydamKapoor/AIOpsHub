@@ -13,12 +13,12 @@ export default function ModelsChart() {
   const total = data.reduce((acc, cur) => acc + cur.value, 0);
 
   return (
-    <Card className="flex flex-col w-full bg-[var(--color-base-300)]/40">
-      <CardHeader className="items-center pb-0">
+    <Card className="flex flex-row w-full bg-[var(--color-base-300)]/40 gap-x-0">
+      <CardHeader className="p-0 pl-3 flex flex-col flex-nowrap w-1/3">
         <CardTitle>Model Distribution</CardTitle>
         <CardDescription>April 2025</CardDescription>
       </CardHeader>
-      <CardContent className={`flex justify-center`}>
+      <CardContent className={`flex justify-center w-2/3 px-0`}>
           <PieChart width={300} height={200}  className="">
             <Pie
               data={data}

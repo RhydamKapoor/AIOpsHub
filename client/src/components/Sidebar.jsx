@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { motion } from "motion/react";
-import { NavLink, useLocation } from "react-router-dom";
+import { Link, NavLink, useLocation } from "react-router-dom";
 import logo from "../assets/images/aiopshublogo.png";
 import { useAuth } from "@/context/AuthContext";
 
@@ -21,7 +21,7 @@ const Sidebar = ({ routes }) => {
       onHoverEnd={() => setIsCollapsed(true)}
       transition={{ duration: 0.3 }}
     >
-      <div className="flex items-center justify-start h-[92px]">
+      <Link to="/" className="flex items-center justify-start h-[92px]">
         <img src={logo} alt="logo" className="w-12 h-12" />
         <motion.span
           animate={{ opacity: isCollapsed ? 0 : 1 }}
@@ -30,7 +30,7 @@ const Sidebar = ({ routes }) => {
         >
           AIOpsHub
         </motion.span>
-      </div>
+      </Link>
 
       <nav className="flex-1 px-2 py-4 flex flex-col justify-between">
         <ul className="space-y-2 overflow-hidden">
@@ -61,8 +61,20 @@ const Sidebar = ({ routes }) => {
           )}
         </ul>
         <div className="flex items-center overflow-hidden">
-          <div className="flex justify-center items-center">
-            <span className="bg-[var(--color-primary)] w-[36px] h-[36px] rounded-full cursor-pointer"></span>
+          <Link to="/dashboard/settings#profile" className="flex justify-center items-center cursor-pointer">
+            <span className="text-lg font-bold w-[36px] h-[36px] bg-[var(--color-primary)] flex justify-center items-center rounded-full text-[var(--color-base-100)] select-none">
+              {user?.image ? (
+                <img
+                  src={user?.image}
+                  alt={`${user?.firstName.charAt(0)} ${user?.lastName.charAt(
+                    0
+                  )}`}
+                  className="w-full h-full object-cover rounded-full "
+                />
+              ) : (
+                `${user?.firstName.charAt(0)}${user?.lastName.charAt(0)}`
+              )}
+            </span>
             <motion.span
               className="ml-3 flex whitespace-nowrap capitalize"
               initial={{ opacity: 1 }}
@@ -70,7 +82,7 @@ const Sidebar = ({ routes }) => {
             >
               {user?.firstName + " " + user?.lastName}
             </motion.span>
-          </div>
+          </Link>
         </div>
       </nav>
     </motion.div>

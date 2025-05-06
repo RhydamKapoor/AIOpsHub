@@ -205,5 +205,25 @@ input{
   background-clip: content-box;
 }
 
+.snowflake {
+  position: fixed;
+  top: -10px;
+  z-index: 9999;
+  color: white;
+  font-size: 1em;
+  user-select: none;
+  animation: fall linear infinite;
+  pointer-events: none;
+}
 
+@keyframes fall {
+  0% {
+    transform: translateY(0) rotate(0deg);
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(100vh) rotate(360deg);
+    opacity: 0;
+  }
+}
 

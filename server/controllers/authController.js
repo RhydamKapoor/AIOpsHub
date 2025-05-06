@@ -10,7 +10,13 @@ exports.signup = async (req, res) => {
     if (exists) return res.status(400).json({ msg: "User already exists" });
 
     const hashed = await bcrypt.hash(password, 10);
-    const user = await User.create({ firstName, lastName, email, password: hashed, role });
+    const user = await User.create({
+      firstName,
+      lastName,
+      email,
+      password: hashed,
+      role,
+    });
     res.status(200).json({ msg: "User created", user });
   } catch (err) {
     res.status(500).json({ msg: err.message });
@@ -29,22 +35,26 @@ exports.login = async (req, res) => {
     // Remove sensitive data before sending response
     const { password: _, ...userWithoutPassword } = user._doc;
 
-    const token = jwt.sign({ details:userWithoutPassword}, process.env.JWT_SECRET, {
-      expiresIn: "1d",
-    });
+    const token = jwt.sign(
+      { details: userWithoutPassword },
+      process.env.JWT_SECRET,
+      {
+        expiresIn: "1d",
+      }
+    );
 
     // Set the token in an HTTP-only cookie
-    res.cookie('token', token, {
+    res.cookie("token", token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'lax',
+      secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? "None" : "lax",
       maxAge: 24 * 60 * 60 * 1000, // 1 day in milliseconds
-      path: '/'
+      path: "/",
     });
 
-    res.json({ 
-      msg: "Login successful", 
-      user: userWithoutPassword 
+    res.json({
+      msg: "Login successful",
+      user: userWithoutPassword,
     });
   } catch (err) {
     res.status(500).json({ msg: err.message });
@@ -56,14 +66,14 @@ exports.getCurrentUser = async (req, res) => {
   try {
     const token = req.cookies.token;
     if (!token) {
-      return res.status(401).json({ msg: 'No token, authorization denied' });
+      return res.status(401).json({ msg: "No token, authorization denied" });
     }
 
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    
-    const user = await User.findById(decoded.details._id).select('-password');
+
+    const user = await User.findById(decoded.details._id).select("-password");
     if (!user) {
-      return res.status(404).json({ msg: 'User not found' });
+      return res.status(404).json({ msg: "User not found" });
     }
     res.json(user);
   } catch (err) {
@@ -73,14 +83,85 @@ exports.getCurrentUser = async (req, res) => {
 
 // Logout user
 exports.logout = (req, res) => {
-  res.cookie('token', '', {
+  res.cookie("token", "", {
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'lax',
+    secure: process.env.NODE_ENV === "production",
+    sameSite: process.env.NODE_ENV === "production" ? "None" : "lax",
     expires: new Date(0),
-    path: '/'
+    path: "/",
   });
   res.json({ msg: "Logged out successfully" });
+};
+
+exports.updateProfile = async (req, res) => {
+  try {
+    const userId = req.user.details._id; // from decoded token
+    const { firstName, lastName, email } = req.body;
+
+    const updatedUser = await User.findByIdAndUpdate(
+      userId,
+      { firstName, lastName, email },
+      { new: true }
+    );
+
+    if (!updatedUser) {
+      return res.status(404).json({ msg: "User not found" });
+    }
+
+    // Remove sensitive data
+    const { password: _, ...userWithoutPassword } = updatedUser._doc;
+
+    // Regenerate the token with updated user data
+    const token = jwt.sign(
+      { details: userWithoutPassword },
+      process.env.JWT_SECRET,
+      {
+        expiresIn: "1d",
+      }
+    );
+
+    // Reset cookie with new token
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? "None" : "lax",
+      maxAge: 24 * 60 * 60 * 1000,
+      path: "/",
+    });
+
+    res.json({ msg: "Profile updated", user: userWithoutPassword });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ msg: "Server error" });
+  }
+};
+
+exports.changePassword = async (req, res) => {
+  const { currentPassword, newPassword } = req.body;
+  try {
+    const user = await User.findById(req.user.details._id);
+    if (!user) return res.status(400).json({ message: "User not found" });
+
+    const isMatch = await bcrypt.compare(currentPassword, user.password);
+    if (!isMatch)
+      return res.status(400).json({ message: "Invalid current password" });
+
+    const hashed = await bcrypt.hash(newPassword, 10);
+    user.password = hashed;
+    await user.save();
+
+    res.cookie("token", "", {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? "None" : "lax",
+      expires: new Date(0),
+      path: "/",
+    });
+
+    res.status(200).json({ message: "Password changed successfully" });
+  } catch (err) {
+    res.status(500).json({ message: err.message });
+  }
 };
 
 exports.sendOtp = async (req, res) => {
@@ -92,14 +173,14 @@ exports.sendOtp = async (req, res) => {
     // const token = jwt.sign({ email }, process.env.JWT_SECRET, { expiresIn: "1h" });
     // const resetUrl = `${process.env.FRONTEND_URL}/reset-password?token=${token}`;
     const generateOTP = Math.floor(100000 + Math.random() * 900000).toString();
-    
+
     // Store both email and OTP in cookie
     const otpData = JSON.stringify({ email, otp: generateOTP });
-    res.cookie('otpData', otpData, {
+    res.cookie("otpData", otpData, {
       maxAge: 3 * 60 * 1000, // 3 minutes in milliseconds
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict'
+      secure: process.env.NODE_ENV === "production",
+      sameSite: "strict",
     });
 
     const html = `
@@ -108,18 +189,18 @@ exports.sendOtp = async (req, res) => {
     `;
 
     const transporter = nodemailer.createTransport({
-      service: 'gmail',
+      service: "gmail",
       auth: {
         user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS
-      }
+        pass: process.env.EMAIL_PASS,
+      },
     });
 
     const mailOptions = {
       from: process.env.EMAIL_USER,
       to: email,
       subject: "Reset Password",
-      html
+      html,
     };
 
     await transporter.sendMail(mailOptions);
@@ -133,7 +214,7 @@ exports.verifyOTP = async (req, res) => {
   const { otp, email } = req.body;
   try {
     const storedData = req.cookies.otpData;
-    
+
     if (!storedData) {
       return res.status(400).json({ msg: "OTP expired or not found" });
     }
@@ -146,7 +227,7 @@ exports.verifyOTP = async (req, res) => {
     }
 
     // Clear the OTP cookie after successful verification
-    res.clearCookie('otpData');
+    res.clearCookie("otpData");
     res.status(200).json({ msg: "OTP verified successfully" });
   } catch (err) {
     res.status(500).json({ msg: err.message });
@@ -178,21 +259,27 @@ exports.googleAuthCallback = async (req, res) => {
     // Remove sensitive data before sending response
     const { password: _, ...userWithoutPassword } = user._doc;
 
-    const token = jwt.sign({ details: userWithoutPassword }, process.env.JWT_SECRET, {
-      expiresIn: "1d",
-    });
+    const token = jwt.sign(
+      { details: userWithoutPassword },
+      process.env.JWT_SECRET,
+      {
+        expiresIn: "1d",
+      }
+    );
 
     // Set the token in an HTTP-only cookie
-    res.cookie('token', token, {
+    res.cookie("token", token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'lax',
+      secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? "None" : "lax",
       maxAge: 24 * 60 * 60 * 1000, // 1 day in milliseconds
-      path: '/'
+      path: "/",
     });
 
     // Redirect to frontend
-    res.redirect(`${process.env.CLIENT_DEV || process.env.CLIENT_PROD}/auth-success`);
+    res.redirect(
+      `${process.env.CLIENT_DEV || process.env.CLIENT_PROD}/auth-success`
+    );
   } catch (err) {
     res.status(500).json({ msg: err.message });
   }
@@ -207,21 +294,27 @@ exports.slackAuthCallback = async (req, res) => {
     // Remove sensitive data before sending response
     const { password: _, ...userWithoutPassword } = user._doc;
 
-    const token = jwt.sign({ details: userWithoutPassword }, process.env.JWT_SECRET, {
-      expiresIn: "1d",
-    });
+    const token = jwt.sign(
+      { details: userWithoutPassword },
+      process.env.JWT_SECRET,
+      {
+        expiresIn: "1d",
+      }
+    );
 
     // Set the token in an HTTP-only cookie
-    res.cookie('token', token, {
+    res.cookie("token", token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'lax',
+      secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? "None" : "lax",
       maxAge: 24 * 60 * 60 * 1000, // 1 day in milliseconds
-      path: '/'
+      path: "/",
     });
 
     // Redirect to frontend
-    res.redirect(`${process.env.CLIENT_DEV || process.env.CLIENT_PROD}/auth-success`);
+    res.redirect(
+      `${process.env.CLIENT_DEV || process.env.CLIENT_PROD}/auth-success`
+    );
   } catch (err) {
     res.status(500).json({ msg: err.message });
   }

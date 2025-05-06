@@ -22,6 +22,9 @@ const userSchema = new mongoose.Schema({
         type: String,
         required: true,
     },
+    image: {
+        type: String,
+    },
     googleId: {
         type: String,
         sparse: true
@@ -35,13 +38,9 @@ const userSchema = new mongoose.Schema({
         required: true,
         enum: ['Admin', 'Editor', 'Viewer']
     },
-    createdAt: {
-        type: Date,
-        default: Date.now
-    }
+}, {
+    timestamps: true // 
 });
-
-
 
 const User = mongoose.models.User || mongoose.model('User', userSchema);
 

@@ -3,11 +3,16 @@ import { useNavigate } from 'react-router-dom';
 
 export default function AuthSuccess() {
   const navigate = useNavigate();
+  const {user} = useAuth();
 
   useEffect(() => {
     // After successful OAuth login, redirect to home page
-    navigate('/');
-  }, [navigate]);
+    if(user){
+      navigate('/');
+    }else{
+      navigate('/login');
+    }
+  }, [navigate, user]);
 
   return (
     <div className="flex justify-center items-center h-screen">
