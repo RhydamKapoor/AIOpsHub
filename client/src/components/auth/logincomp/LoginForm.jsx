@@ -40,6 +40,7 @@ export default function LoginForm({tabs, setTabs}) {
   }
 
   const handleGoogleLogin = () => {
+    console.log("Google login");
     window.location.href = `${import.meta.env.VITE_API_BASE_URL}/auth/google`;
   };
 

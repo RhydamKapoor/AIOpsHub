@@ -227,3 +227,26 @@ input{
   }
 }
 
+/* Fix for Atropos blocking pointer events */
+.atropos-rotate,
+.atropos-scale,
+.atropos-inner {
+  pointer-events: none !important;
+}
+
+.atropos-inner > * {
+  pointer-events: auto !important;
+}
+
+/* Ensure all interactive elements work */
+input, 
+button, 
+a, 
+select, 
+textarea,
+[role="button"],
+[type="button"],
+[type="submit"] {
+  pointer-events: auto !important;
+}
+
