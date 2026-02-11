@@ -271,7 +271,7 @@ exports.googleAuthCallback = async (req, res) => {
 
     // Redirect to frontend
     res.redirect(
-      `${process.env.CLIENT_DEV || process.env.CLIENT_PROD}/auth-success`
+      `${process.env.NODE_ENV === "development" ? process.env.CLIENT_DEV : process.env.CLIENT_PROD}/auth-success`
     );
   } catch (err) {
     res.status(500).json({ msg: err.message });
@@ -306,7 +306,7 @@ exports.slackAuthCallback = async (req, res) => {
 
     // Redirect to frontend
     res.redirect(
-      `${process.env.CLIENT_DEV || process.env.CLIENT_PROD}/auth-success`
+      `${process.env.NODE_ENV === "development" ? process.env.CLIENT_DEV : process.env.CLIENT_PROD}/auth-success`
     );
   } catch (err) {
     res.status(500).json({ msg: err.message });

@@ -12,6 +12,8 @@ const googleDevCallback = process.env.GOOGLE_CALLBACK_URL_DEV || 'dummy_google_c
 const googleProdCallback = process.env.GOOGLE_CALLBACK_URL_PROD || 'dummy_google_client_secret';
 const slackClientId = process.env.SLACK_CLIENT_ID || 'dummy_slack_client_id';
 const slackClientSecret = process.env.SLACK_CLIENT_SECRET || 'dummy_slack_client_secret';
+const slackDevCallback = process.env.SLACK_CALLBACK_URL_DEV || 'dummy_slack_client_secret';
+const slackProdCallback = process.env.SLACK_CALLBACK_URL_PROD || 'dummy_slack_client_secret';
 
 // Serialize and deserialize user
 passport.serializeUser((user, done) => {
@@ -81,7 +83,7 @@ try {
         clientID: slackClientId,
         clientSecret: slackClientSecret,
         skipUserProfile: false,
-        callbackURL: '/api/auth/slack/callback',
+        callbackURL: nodeEnv === "production" ? slackProdCallback : slackDevCallback,
         scope: ['identity.basic', 'identity.email', 'identity.avatar']
       },
       async (accessToken, refreshToken, profile, done) => {
