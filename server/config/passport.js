@@ -5,8 +5,11 @@ const User = require('../models/User');
 const crypto = require('crypto');
 
 // Set default values if environment variables are missing
+const nodeEnv = process.env.NODE_ENV || 'development';
 const googleClientId = process.env.GOOGLE_CLIENT_ID || 'dummy_google_client_id';
 const googleClientSecret = process.env.GOOGLE_CLIENT_SECRET || 'dummy_google_client_secret';
+const googleDevCallback = process.env.GOOGLE_CALLBACK_URL_DEV || 'dummy_google_client_secret';
+const googleProdCallback = process.env.GOOGLE_CALLBACK_URL_PROD || 'dummy_google_client_secret';
 const slackClientId = process.env.SLACK_CLIENT_ID || 'dummy_slack_client_id';
 const slackClientSecret = process.env.SLACK_CLIENT_SECRET || 'dummy_slack_client_secret';
 
@@ -16,14 +19,14 @@ passport.serializeUser((user, done) => {
 });
 
 passport.deserializeUser(async (id, done) => {
-    try {
-      const user = await User.findById(id);
-      done(null, user);
-    } catch (error) {
-      console.error('Error in deserializeUser:', error);
-      done(error, null);
-    }
-  });
+  try {
+    const user = await User.findById(id);
+    done(null, user);
+  } catch (error) {
+    console.error('Error in deserializeUser:', error);
+    done(error, null);
+  }
+});
 
 // Google OAuth Strategy
 passport.use(
@@ -31,14 +34,14 @@ passport.use(
     {
       clientID: googleClientId,
       clientSecret: googleClientSecret,
-      callbackURL: '/api/auth/google/callback',
+      callbackURL: nodeEnv === "production" ? googleProdCallback : googleDevCallback,
       scope: ['profile', 'email']
     },
     async (accessToken, refreshToken, profile, done) => {
       try {
         // Check if user already exists
         let user = await User.findOne({ email: profile.emails[0].value });
-        
+
         if (user) {
           // If user exists but was registered with credentials, update with Google info
           if (!user.googleId) {
@@ -48,7 +51,7 @@ passport.use(
           }
           return done(null, user);
         }
-        
+
         // If no user found, create a new one
         const newUser = new User({
           googleId: profile.id,
@@ -60,7 +63,7 @@ passport.use(
           role: 'Viewer', // Default role
           image: profile.photos?.[0]?.value || `https://ui-avatars.com/api/?name=${profile.name.givenName}+${profile.name.familyName}`
         });
-        
+
         await newUser.save();
         return done(null, newUser);
       } catch (error) {
@@ -88,9 +91,9 @@ try {
             console.error('Slack profile missing user email:', profile);
             return done(new Error('Invalid profile data from Slack'), null);
           }
-          
+
           let user = await User.findOne({ email: profile.user.email });
-          
+
           if (user) {
             // If user exists but was registered with credentials, update with Slack info
             if (!user.slackId) {
@@ -100,7 +103,7 @@ try {
             }
             return done(null, user);
           }
-          
+
           // If no user found, create a new one
           const nameParts = profile.user.name ? profile.user.name.split(' ') : ['Slack', 'User'];
           const newUser = new User({
@@ -113,7 +116,7 @@ try {
             role: 'Viewer', // Default role
             image: profile.user.image_48 || `https://ui-avatars.com/api/?name=${nameParts[0]}+${nameParts.slice(1).join(' ')}`
           });
-          
+
           await newUser.save();
           return done(null, newUser);
         } catch (error) {
