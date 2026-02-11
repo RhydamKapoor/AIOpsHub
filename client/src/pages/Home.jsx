@@ -1,6 +1,6 @@
 import { TypingAnimation } from "@/components/magicui/typing-animation";
 import Snowfall from "@/components/Snowfall";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import {
   LayoutDashboard,
   Wrench,
@@ -49,6 +49,7 @@ const routes = [
 export default function Home() {
   const [isLoading, setIsLoading] = useState(true);
   const [user, setUser] = useState(null);
+  const navigate = useNavigate();
 
   const filteredRoutes = routes.filter((route) =>
     route.access.includes(user?.role)
@@ -61,6 +62,7 @@ export default function Home() {
         setUser(response.data);
       } catch (error) {
         console.log("❌ Auth check failed", error);
+        navigate("/login");
         setUser(null);
       } finally {
         setIsLoading(false);

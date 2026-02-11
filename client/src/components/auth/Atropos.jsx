@@ -18,13 +18,13 @@ export default function AtroposComp({ children, prevTab, update }) {
       shadow={false}
       highlight={false}
     >
-      <div className="bg-[var(--color-base-100)]/50 rounded-lg border-[var(--color-base-content)]/20 border shadow-xl w-full relative">
+      <div className="bg-[var(--color-base-100)]/50 rounded-lg border-[var(--color-base-content)]/20 border shadow-xl w-full relative" data-atropos-offset="0">
         {prevTab && prevTab.text && (
-          <span className="absolute top-2 left-2 text-sm text-base-content flex items-center gap-x-2 cursor-pointer z-50" onClick={update?.newPassword ? backToLogin : prevTab.tab}>
+          <span className="absolute top-2 left-2 text-sm text-base-content flex items-center gap-x-2 cursor-pointer z-50" onClick={update?.newPassword ? backToLogin : prevTab.tab} data-atropos-offset="0">
             <StepBack size={18} /> {prevTab.text}
           </span>
         )}
-        <div className="flex flex-col backdrop-blur-lg rounded-lg px-7 py-10 h-auto">
+        <div className="flex flex-col backdrop-blur-lg rounded-lg px-7 py-10 h-auto" data-atropos-offset="0">
           {children}
         </div>
       </div>
