@@ -5,7 +5,6 @@ import { useAuthStore } from "@/store/useAuthStore";
 export default function ProtectedRoute({children}) {
   const { user, loading } = useAuthStore();
   
-  console.log(`ProtectedRoute: Checking auth - loading: ${loading}`)
 
   if (loading) {
     return (
@@ -15,7 +14,6 @@ export default function ProtectedRoute({children}) {
     );
   }
 
-  console.log(`ProtectedRoute: Checking auth - user: ${user}`)
 
   if (!user) {
     return <Navigate to="/login" replace />;
