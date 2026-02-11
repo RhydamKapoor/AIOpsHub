@@ -1,9 +1,10 @@
+import { useAuthStore } from '@/store/useAuthStore';
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 export default function AuthSuccess() {
   const navigate = useNavigate();
-  const {user} = useAuth();
+  const {user} = useAuthStore();
 
   useEffect(() => {
     // After successful OAuth login, redirect to home page

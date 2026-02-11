@@ -16,8 +16,16 @@ import Settings from "./pages/Dashboard/Settings";
 import ManageRoles from "./pages/Dashboard/ManageRoles";
 import RoleAssign from "./pages/Auth/RoleAssign";
 import AuthSuccess from "./pages/Auth/AuthSuccess";
+import { useAuthStore } from "./store/useAuthStore";
+import { useEffect } from "react";
 
 function App() {
+
+  const checkAuth = useAuthStore((state) => state.checkAuth);
+
+  useEffect(() => {
+    checkAuth();
+  }, [checkAuth]);
   return (
     <Routes>
       <Route path="/" element={<RootLayout />}>
@@ -27,15 +35,18 @@ function App() {
         <Route path="signup" element={<PublicRoutes><Signup /></PublicRoutes>} />
         <Route path="auth-success" element={<PublicRoutes><AuthSuccess /></PublicRoutes>} />
 
-        <Route path="dashboard" element={<ProtectedRoute><DashboardLayout /></ProtectedRoute>}>
-          <Route index element={<Dashboard />} />
-          <Route path="chatwithagent" element={<ChatWithAgent />} />
-          <Route path="editor/agentbuilder" element={<AgentBuilder />} />
-          <Route path="editor/toolmanager" element={<ToolManager />} />
-          <Route path="historyanalytics" element={<HistoryAnalytics />} />
-          <Route path="admin/manageroles" element={<ManageRoles />} />
-          <Route path="settings" element={<Settings />} />
+        <Route path="dashboard" element={<ProtectedRoute />}>
+          <Route element={<DashboardLayout />}>
+            <Route index element={<Dashboard />} />
+            <Route path="chatwithagent" element={<ChatWithAgent />} />
+            <Route path="editor/agentbuilder" element={<AgentBuilder />} />
+            <Route path="editor/toolmanager" element={<ToolManager />} />
+            <Route path="historyanalytics" element={<HistoryAnalytics />} />
+            <Route path="admin/manageroles" element={<ManageRoles />} />
+            <Route path="settings" element={<Settings />} />
+          </Route>
         </Route>
+
       </Route>
       <Route path="*" element={<p>Page not found</p>} />
     </Routes>

@@ -64,14 +64,7 @@ exports.login = async (req, res) => {
 // Get current user profile
 exports.getCurrentUser = async (req, res) => {
   try {
-    const token = req.cookies.token;
-    if (!token) {
-      return res.status(401).json({ msg: "No token, authorization denied" });
-    }
-
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-
-    const user = await User.findById(decoded.details._id).select("-password");
+    const user = req.user.details;
     if (!user) {
       return res.status(404).json({ msg: "User not found" });
     }

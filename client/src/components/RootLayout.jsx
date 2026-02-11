@@ -2,12 +2,11 @@ import React, { useContext } from "react";
 import { Outlet, useLocation } from "react-router-dom";
 import ThemeSwitcher from "./ThemeSwitcher";
 import { ThemeContext } from "../context/ThemeContext";
-import { useAuth } from "../context/AuthContext";
 import logo from "../assets/images/aiopshublogo.png";
 import Sidebar from "./Sidebar";
-import { LayoutDashboard, Wrench, MessageCircle, PencilRuler, History, Puzzle, Settings, Search } from "lucide-react";
-import { FlipText } from "./magicui/flip-text";
+import { LayoutDashboard, Wrench, MessageCircle, PencilRuler, History, Puzzle, Settings } from "lucide-react";
 import { TypingAnimation } from "./magicui/typing-animation";
+import { useAuthStore } from "@/store/useAuthStore";
 
 
 const routes = [
@@ -56,7 +55,7 @@ const routes = [
 ];
 export default function RootLayout() {
   const { theme } = useContext(ThemeContext);
-  const { user } = useAuth();
+  const { user } = useAuthStore();
 
   const location = useLocation();
   const pathname = location.pathname;

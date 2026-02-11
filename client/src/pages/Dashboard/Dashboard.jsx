@@ -1,13 +1,13 @@
 import { LineChartComp } from '@/components/charts/LineChart'
 import ModelsChart from '@/components/charts/ModelsChart'
 import { WorkflowUsageBar } from '@/components/charts/WorkflowUsageBar'
-import { useAuth } from '@/context/AuthContext'
+import { useAuthStore } from '@/store/useAuthStore'
 import axiosInstance from '@/utils/axiosConfig'
 import { Loader2 } from 'lucide-react'
 import React, { useEffect, useState } from 'react'
 
 export default function Dashboard() {
-  const {user} = useAuth()  
+  const {user} = useAuthStore()  
   const [workflows, setWorkflows] = useState([])
   const [tokenUsage, setTokenUsage] = useState({
     totalTokenUsage: 0,
@@ -80,11 +80,6 @@ export default function Dashboard() {
       const response = await axiosInstance.get("/allWorkflows");
       const workflows = response.data.filter(workflow => user.role === "Admin" ? true : workflow.user === user._id);
       setWorkflows(workflows);
-
-      const getTokenData =  fetchTokenData(workflows);
-      console.log(workflows);
-      
-      console.log(getTokenData);
       
     } catch (error) {
       console.log(error);

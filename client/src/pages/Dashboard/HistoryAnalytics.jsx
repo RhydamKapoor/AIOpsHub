@@ -1,10 +1,10 @@
 import axiosInstance from "@/utils/axiosConfig";
 import { useEffect, useState } from "react";
 import { format } from "date-fns";
-import { useAuth } from "@/context/AuthContext";
+import { useAuthStore } from "@/store/useAuthStore";
 
 export default function HistoryAnalytics() {
-  const { user } = useAuth();
+  const { user } = useAuthStore();
   const [history, setHistory] = useState([]);
   const [visibleCounts, setVisibleCounts] = useState({});
   const [visibleDateCount, setVisibleDateCount] = useState(1);

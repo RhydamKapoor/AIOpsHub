@@ -8,17 +8,18 @@ import { Link, useNavigate } from "react-router-dom";
 import { loginSchema } from "../../../utils/Validation";
 import toast from "react-hot-toast";
 import axiosInstance from "../../../utils/axiosConfig";
+import { useAuthStore } from "@/store/useAuthStore";
 
 export default function LoginForm({tabs, setTabs}) {
   const {
     register,
-    watch,
     formState: { errors },
     handleSubmit,
   } = useForm({
     resolver: zodResolver(loginSchema),
   });
   const [show, setShow] = useBoolToggle();
+  const {checkAuth} = useAuthStore()
   const router = useNavigate();
 
   const onSubmit = async (data) => {
@@ -28,7 +29,8 @@ export default function LoginForm({tabs, setTabs}) {
         const response = await axiosInstance.post("auth/login", data);
         if(response.status === 200){
           toast.success("Welcome user!", {id: toastId});
-          router("/");
+          console.log(response);
+          checkAuth();
         }else{
           toast.error("Login failed", {id: toastId});
         }
@@ -48,7 +50,7 @@ export default function LoginForm({tabs, setTabs}) {
   };
 
   return (
-    <div className="flex flex-col items-center gap-y-5 w-full">
+    <div className="flex flex-col items-center gap-y-5 w-full z-50">
       <h1 className="text-4xl font-bold uppercase p-3">Welcome</h1>
       <form className="flex flex-col w-full gap-y-5" onSubmit={handleSubmit(onSubmit)}>
         <div className="flex flex-col">

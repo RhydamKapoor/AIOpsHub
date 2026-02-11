@@ -21,7 +21,6 @@ export default function ProfileComp({user, setUser}) {
     register,
     handleSubmit,
     watch,
-    reset,
     setValue,
     formState: { errors },
   } = useForm({
@@ -59,7 +58,7 @@ export default function ProfileComp({user, setUser}) {
       <CardContent className={`h-full`}>
         <div className="flex flex-col gap-y-7 h-full">
           <div className="flex flex-col items-center justify-center gap-y-1">
-            <span className="text-2xl font-bold w-24 h-24 bg-[var(--color-primary)] flex justify-center items-center rounded-full text-[var(--color-base-100)]">
+            <span className="text-2xl font-bold w-24 h-24 bg-[var(--color-primary)] flex justify-center items-center rounded-full text-[var(--color-base-100)] uppercase">
               {user?.image ? (
                 <img
                   src={user?.image}

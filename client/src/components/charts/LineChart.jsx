@@ -42,8 +42,6 @@ export function LineChartComp({ data, title, description, tooltipName }) {
 
   const chartData = sortedDays.map((weekday) => {
     const dayMatch = data?.weeklyTokenUsage?.find((d) => d.weekday === weekday);
-    console.log(dayMatch);
-    console.log(data?.weeklyTokenUsage);
 
     return {
       month: weekday,

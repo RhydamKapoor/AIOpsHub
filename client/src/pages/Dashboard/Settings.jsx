@@ -1,7 +1,7 @@
 import PassChange from "@/components/dashboard/Settings/PassChange";
 import ProfileComp from "@/components/dashboard/Settings/ProfileComp";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useAuth } from "@/context/AuthContext";
+import { useAuthStore } from "@/store/useAuthStore";
 import axiosInstance from "@/utils/axiosConfig";
 import { LogOut } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -9,7 +9,7 @@ import { useNavigate } from "react-router-dom";
 
 export default function Settings() {
   const router = useNavigate();
-  const { user, setUser } = useAuth();
+  const { user, setUser } = useAuthStore();
   const [tab, setTab] = useState("changepassword");
 
   const logout = async () => {

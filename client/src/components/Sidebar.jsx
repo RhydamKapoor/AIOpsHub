@@ -2,10 +2,10 @@ import React, { useState } from "react";
 import { motion } from "motion/react";
 import { Link, NavLink, useLocation } from "react-router-dom";
 import logo from "../assets/images/aiopshublogo.png";
-import { useAuth } from "@/context/AuthContext";
+import { useAuthStore } from "@/store/useAuthStore";
 
 const Sidebar = ({ routes }) => {
-  const { user } = useAuth();
+  const { user } = useAuthStore();
   const [isCollapsed, setIsCollapsed] = useState(true);
   const location = useLocation();
   const pathname = location.pathname;
@@ -61,7 +61,7 @@ const Sidebar = ({ routes }) => {
           )}
         </ul>
         <div className="flex items-center overflow-hidden">
-          <Link to="/dashboard/settings#profile" className="flex justify-center items-center cursor-pointer">
+          <Link to="/dashboard/settings#profile" className="flex justify-center items-center cursor-pointer uppercase">
             <span className="text-lg font-bold w-[36px] h-[36px] bg-[var(--color-primary)] flex justify-center items-center rounded-full text-[var(--color-base-100)] select-none">
               {user?.image ? (
                 <img
