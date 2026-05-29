@@ -1,4 +1,4 @@
-const { tool } = require("langchain/tools");
+const { tool } = require("@langchain/core/tools");
 
 // This is a simple tool that will echo the input
 const echoTool = tool(

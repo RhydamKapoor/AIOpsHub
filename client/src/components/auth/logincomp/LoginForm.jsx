@@ -52,7 +52,9 @@ export default function LoginForm({tabs, setTabs}) {
 
   return (
     <div className="flex flex-col items-center gap-y-5 w-full z-50">
-      <h1 className="text-4xl font-bold uppercase p-3">Welcome</h1>
+      <h1 className="w-full px-2 py-1 text-center text-xl font-bold uppercase tracking-tight sm:text-2xl md:text-3xl">
+        Welcome
+      </h1>
       <form className="flex flex-col w-full gap-y-5" onSubmit={handleSubmit(onSubmit)}>
         <div className="flex flex-col">
           <div className="flex flex-col relative">
@@ -117,13 +119,13 @@ export default function LoginForm({tabs, setTabs}) {
                 </span> */}
           <button
             type="submit"
-            className="bg-[var(--color-neutral)] text-[var(--color-neutral-content)] py-3 w-full rounded-full font-bold cursor-pointer"
+            className="bg-neutral text-neutral-content py-3 w-full rounded-full font-bold cursor-pointer"
           >
             Login
           </button>
-          <span className="text-[var(--lightText)] text-sm">- or -</span>
+          <span className="text-(--lightText) text-sm">- or -</span>
 
-          <div className="flex max-[1160px]:flex-col items-center justify-center w-full *:w-1/2 max-[1160px]:*:w-full text-sm gap-x-5 gap-y-3 *:cursor-pointer *:bg-[var(--color-base-300)] *:text-[var(--color-base-content)]">
+          <div className="flex max-[1160px]:flex-col items-center justify-center w-full *:w-1/2 max-[1160px]:*:w-full text-sm gap-x-5 gap-y-3 *:cursor-pointer *:bg-base-300 *:text-base-content">
             <button
               type="button"
               onClick={handleGoogleLogin}
@@ -141,9 +143,9 @@ export default function LoginForm({tabs, setTabs}) {
               <span className="font-semibold">Login with Slack</span>
             </button>
           </div>
-          <p className="text-[var(--lightText)] text-md">
+          <p className="text-(--lightText) text-md">
             New user?{" "}
-            <Link to="/role-selection" className="text-[var(--dark-btn)] font-semibold">
+            <Link to="/role-selection" className="text-(--dark-btn) font-semibold">
               Sign up
             </Link>
           </p>

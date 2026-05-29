@@ -1,91 +1,127 @@
-import React, { useState } from "react";
-import { motion } from "motion/react";
+import { useState } from "react";
 import { Link, NavLink, useLocation } from "react-router-dom";
+import { motion } from "motion/react";
 import logo from "../assets/images/aiopshublogo.png";
 import { useAuthStore } from "@/store/useAuthStore";
+import { isDashboardRouteActive } from "@/config/dashboardRoutes";
+import { cn } from "@/lib/utils";
+
+const COLLAPSED_WIDTH = 70;
+const EXPANDED_WIDTH = 250;
+const SIDEBAR_TRANSITION = { duration: 0.3, ease: "easeInOut" };
+
+const glassSidebar =
+  "glass-surface glass-surface--edge border-r";
+
+const labelClass = (expanded) =>
+  cn(
+    "overflow-hidden whitespace-nowrap transition-[max-width,opacity,margin] duration-300 ease-in-out",
+    expanded ? "ml-3 max-w-[180px] opacity-100" : "ml-0 max-w-0 opacity-0"
+  );
+
+const navItemClass = (active) =>
+  cn(
+    "flex items-center rounded-xl p-2.5 transition-colors duration-300",
+    active
+      ? "bg-primary/90 text-primary-content shadow-md shadow-primary/20"
+      : "text-base-content/80 hover:bg-base-100/25 hover:text-base-content"
+  );
 
 const Sidebar = ({ routes }) => {
   const { user } = useAuthStore();
-  const [isCollapsed, setIsCollapsed] = useState(true);
   const location = useLocation();
   const pathname = location.pathname;
+  const [expanded, setExpanded] = useState(false);
 
   if (!pathname.includes("/dashboard")) return null;
 
   return (
-    <motion.div
-      className={`h-full bg-[var(--color-base-300)] border-r border-[var(--color-base-content)] flex flex-col px-2`}
-      initial={{ width: 70 }}
-      whileHover={{ width: 250 }}
-      onHoverStart={() => setIsCollapsed(false)}
-      onHoverEnd={() => setIsCollapsed(true)}
-      transition={{ duration: 0.3 }}
+    <motion.aside
+      className={cn(
+        "fixed left-0 top-0 z-50 hidden h-screen shrink-0 flex-col overflow-hidden px-2 lg:flex",
+        glassSidebar
+      )}
+      initial={false}
+      animate={{ width: expanded ? EXPANDED_WIDTH : COLLAPSED_WIDTH }}
+      transition={SIDEBAR_TRANSITION}
+      onMouseEnter={() => setExpanded(true)}
+      onMouseLeave={() => setExpanded(false)}
     >
-      <Link to="/" className="flex items-center justify-start h-[92px]">
-        <img src={logo} alt="logo" className="w-12 h-12" />
-        <motion.span
-          animate={{ opacity: isCollapsed ? 0 : 1 }}
-          transition={{ duration: 0.1 }}
-          className="text-2xl font-bold"
+      <Link
+        to="/"
+        className="flex h-[72px] items-center justify-start overflow-hidden border-b border-base-content/8 px-2"
+      >
+        <img src={logo} alt="logo" className="h-11 w-11 shrink-0 drop-shadow-sm" />
+        <span
+          className={cn(
+            labelClass(expanded),
+            "text-xl font-bold tracking-tight text-base-content"
+          )}
         >
           AIOpsHub
-        </motion.span>
+        </span>
       </Link>
 
-      <nav className="flex-1 px-2 py-4 flex flex-col justify-between">
-        <ul className="space-y-2 overflow-hidden">
+      <nav className="flex flex-1 flex-col justify-between overflow-hidden py-3">
+        <ul className="space-y-1 overflow-hidden px-1">
           {routes.map(
-            (route, i) =>
-              route.access.includes(user?.role) && ( // Only check includes, no ===
-                <motion.li key={route.path}>
+            (route) =>
+              route.access.includes(user?.role) && (
+                <li key={route.path}>
                   <NavLink
                     to={route.path}
-                    className={`flex items-center p-2 rounded-lg transition-colors ${
-                      location.pathname === route.path
-                        ? "bg-[var(--color-primary)] text-[var(--color-base-100)]"
-                        : "hover:bg-[var(--color-base-100)]"
-                    }`}
+                    end={route.path === "/dashboard"}
+                    title={route.name}
+                    className={() =>
+                      navItemClass(
+                        isDashboardRouteActive(pathname, route.path)
+                      )
+                    }
                   >
-                    <route.icon size={20} className="min-w-[20px]" />
-                    <motion.span
-                      className="ml-3 flex whitespace-nowrap"
-                      initial={{ opacity: 1 }}
-                      animate={{ opacity: isCollapsed ? 0 : 1 }}
-                      transition={{ duration: 0.2, delay: i * 0.1 }}
+                    <route.icon
+                      size={20}
+                      className="min-h-[20px] min-w-[20px] shrink-0"
+                    />
+                    <span
+                      className={cn(labelClass(expanded), "text-sm font-medium")}
                     >
                       {route.name}
-                    </motion.span>
+                    </span>
                   </NavLink>
-                </motion.li>
+                </li>
               )
           )}
         </ul>
-        <div className="flex items-center overflow-hidden">
-          <Link to="/dashboard/settings#profile" className="flex justify-center items-center cursor-pointer uppercase">
-            <span className="text-lg font-bold w-[36px] h-[36px] bg-[var(--color-primary)] flex justify-center items-center rounded-full text-[var(--color-base-100)] select-none">
+
+        <div className="overflow-hidden border-t border-base-content/8 px-1 pb-2 pt-2">
+          <Link
+            to="/dashboard/settings#profile"
+            title={`${user?.firstName} ${user?.lastName}`}
+            className="flex cursor-pointer items-center overflow-hidden rounded-xl p-1.5 transition-colors duration-300 hover:bg-base-100/25"
+          >
+            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-primary/90 text-sm font-bold uppercase text-primary-content shadow-sm ring-2 ring-base-100/20">
               {user?.image ? (
                 <img
-                  src={user?.image}
-                  alt={`${user?.firstName.charAt(0)} ${user?.lastName.charAt(
-                    0
-                  )}`}
-                  className="w-full h-full object-cover rounded-full "
+                  src={user.image}
+                  alt=""
+                  className="h-full w-full rounded-full object-cover"
                 />
               ) : (
-                `${user?.firstName.charAt(0)}${user?.lastName.charAt(0)}`
+                `${user?.firstName?.charAt(0) || ""}${user?.lastName?.charAt(0) || ""}`
               )}
             </span>
-            <motion.span
-              className="ml-3 flex whitespace-nowrap capitalize"
-              initial={{ opacity: 1 }}
-              animate={{ opacity: isCollapsed ? 0 : 1 }}
+            <span
+              className={cn(
+                labelClass(expanded),
+                "text-sm font-medium capitalize text-base-content/90"
+              )}
             >
-              {user?.firstName + " " + user?.lastName}
-            </motion.span>
+              {user?.firstName} {user?.lastName}
+            </span>
           </Link>
         </div>
       </nav>
-    </motion.div>
+    </motion.aside>
   );
 };
 

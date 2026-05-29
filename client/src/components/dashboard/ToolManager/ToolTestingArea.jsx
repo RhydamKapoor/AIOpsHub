@@ -1,137 +1,121 @@
-import { ChevronDown, ChevronUp, Triangle } from "lucide-react";
-import React, { useState } from "react";
+import { ChevronDown, Loader2, Play } from "lucide-react";
+import { useState } from "react";
+import {
+  CollapsiblePanel,
+  accordionChevronClass,
+} from "@/components/ui/CollapsiblePanel";
 
 export default function ToolTestingArea({
   testToolBar,
   setTestToolBar,
   register,
   watch,
-  testTool
+  testTool,
 }) {
   const [testOutput, setTestOutput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
-  // const sendQuery = async(data) => {
-  //   if(data.query.trim() === "") return;
-    
-  //   // Add user message to chat
-  //   const userMessage = { role: "user", content: data.query };
-  //   setMessages(prev => [...prev, userMessage]);
-    
-  //   // Clear input field
-  //   setValue("query", "");
-    
-  //   // Show loading state
-  //   setIsLoading(true);
-    
-  //   try {
-  //     // Send request to backend
-  //     const response = await axiosInstance.post("/chat", { message: data.query });
-  //     // console.log(`response ${JSON.stringify(response)}`);
-  //     // Add assistant response to chat
-  //     const assistantMessage = { 
-  //       role: "assistant", 
-  //       content: response.data.response || "I'm having trouble processing that right now."
-  //     };
-  //     setMessages(prev => [...prev, assistantMessage]);
-  //   } catch (error) {
-  //     console.error("Error sending query:", error);
-  //     // Add error message to chat
-  //     const errorMessage = { 
-  //       role: "assistant", 
-  //       content: "Sorry, I encountered an error. Please try again later."
-  //     };
-  //     setMessages(prev => [...prev, errorMessage]);
-  //   } finally {
-  //     setIsLoading(false);
-  //   }
-  // }
-
   const runTool = async () => {
-    // debugger;
     const testPromptValue = watch("testPrompt");
-    if (!testPromptValue) {
+    if (!testPromptValue?.trim()) {
       setTestOutput("Please enter a prompt to test the tool.");
+      return;
+    }
+    if (!testToolBar?.tool?._id) {
+      setTestOutput("Select a tool from the list above, then test it here.");
       return;
     }
 
     setIsLoading(true);
     setTestOutput("Running tool...");
-    
+
     try {
       const result = await testTool(testToolBar.tool._id, testPromptValue);
       setTestOutput(result || "No result returned from tool.");
     } catch (error) {
-      setTestOutput(`Error: ${error.message || "An error occurred while testing the tool."}`);
+      setTestOutput(
+        `Error: ${error.message || "An error occurred while testing the tool."}`
+      );
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="flex flex-col border-2 border-b-none w-full rounded-lg h-full bg-[var(--color-base-100)]/50 overflow-hidden">
-      <div
-        className="flex border-b-2 justify-center py-2 relative cursor-pointer"
+    <div className="shrink-0 overflow-hidden rounded-xl border border-base-content/10 bg-base-100/50">
+      <button
+        type="button"
+        className="flex w-full items-center justify-between gap-3 border-b border-base-content/10 px-4 py-3.5 text-left"
         onClick={() =>
           setTestToolBar({ ...testToolBar, open: !testToolBar.open })
         }
+        aria-expanded={testToolBar.open}
       >
-        <h1 className="text-xl font-semibold">Tools Testing Area</h1>
-        <span className="absolute right-5 top-1/2 -translate-y-1/2">
-          {!testToolBar.open ? <ChevronUp /> : <ChevronDown />}
-        </span>
-      </div>
+        <div>
+          <h2 className="text-base font-semibold sm:text-lg">Tool Testing</h2>
+          <p className="text-xs text-base-content/55">
+            {testToolBar?.tool?.title
+              ? `Testing: ${testToolBar.tool.title}`
+              : "Pick a tool and run a prompt"}
+          </p>
+        </div>
+        <ChevronDown className={accordionChevronClass(testToolBar.open)} />
+      </button>
 
-      <div className="flex overflow-hidden p-4">
-        <div className="flex flex-col gap-y-3 w-2/5">
-          <div className="flex justify-between">
-            <h1>
-              <span className="font-semibold">Title:</span>{" "}
-              {testToolBar?.tool?.title || "Select a tool to test"}
-            </h1>
-            <div 
-              className={`flex items-center text-green-600 cursor-pointer ${!testToolBar?.tool?._id || isLoading ? 'opacity-50 cursor-not-allowed' : ''}`} 
-              onClick={() => !isLoading && testToolBar?.tool?._id && runTool()}
-            >
-              <span>
-                {isLoading ? "Running..." : "Run"}
-              </span>
-              <span>
-                <Triangle
-                  size={14}
-                  className="-rotate-[30deg]"
-                />
-              </span>
+      <CollapsiblePanel open={testToolBar.open}>
+        <div className="flex flex-col gap-4 border-t border-base-content/10 p-4 lg:flex-row lg:gap-5">
+          <div className="flex min-w-0 flex-1 flex-col gap-3">
+            <div className="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
+              <p className="text-sm">
+                <span className="font-semibold">Tool:</span>{" "}
+                {testToolBar?.tool?.title || "None selected"}
+              </p>
+              <button
+                type="button"
+                disabled={isLoading || !testToolBar?.tool?._id}
+                onClick={runTool}
+                className="flex min-h-10 items-center justify-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-content disabled:opacity-50"
+              >
+                {isLoading ? (
+                  <Loader2 className="h-4 w-4 animate-spin" />
+                ) : (
+                  <Play className="h-4 w-4" />
+                )}
+                {isLoading ? "Running..." : "Run Tool"}
+              </button>
+            </div>
+
+            <div className="flex flex-col gap-1.5">
+              <label htmlFor="testPrompt" className="text-sm font-medium">
+                Test prompt
+              </label>
+              <textarea
+                id="testPrompt"
+                rows={4}
+                {...register("testPrompt")}
+                className="w-full resize-y rounded-lg border bg-base-100 px-3 py-2.5 text-base outline-none"
+                placeholder="Enter a prompt to test the tool..."
+                disabled={isLoading || !testToolBar?.tool?._id}
+              />
             </div>
           </div>
 
-          <div className="flex flex-col">
-            <label htmlFor="testPrompt" className="font-semibold">
-              Prompt:
-            </label>
-            <textarea
-              type="text"
-              id="testPrompt"
-              rows={5}
-              {...register("testPrompt")}
-              className="border outline-none rounded-md p-3 resize-none"
-              placeholder="Enter a prompt to test the tool..."
-              disabled={isLoading || !testToolBar?.tool?._id}
-            ></textarea>
+          <div className="flex min-w-0 flex-1 flex-col gap-1.5">
+            <span className="text-sm font-medium">Output</span>
+            <div className="min-h-[120px] flex-1 overflow-auto rounded-lg border bg-base-100 p-3 text-sm lg:min-h-[160px]">
+              {testOutput ? (
+                <pre className="whitespace-pre-wrap break-words font-sans">
+                  {testOutput}
+                </pre>
+              ) : (
+                <p className="text-base-content/45">
+                  Run the tool to see output here
+                </p>
+              )}
+            </div>
           </div>
         </div>
-
-        <div className="flex flex-col px-4 w-3/5">
-          <h1 className="font-semibold">Output:</h1>
-          <div className="border p-3 rounded-md h-full overflow-auto mt-2 bg-gray-50">
-            {testOutput ? (
-              <pre className="whitespace-pre-wrap">{testOutput}</pre>
-            ) : (
-              <p className="text-gray-400">Run the tool to see output here</p>
-            )}
-          </div>
-        </div>
-      </div>
+      </CollapsiblePanel>
     </div>
   );
 }

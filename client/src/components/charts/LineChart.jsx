@@ -1,5 +1,13 @@
 import { TrendingUp } from "lucide-react";
-import { CartesianGrid, Dot, Line, LineChart, XAxis, YAxis } from "recharts";
+import {
+  CartesianGrid,
+  Dot,
+  Line,
+  LineChart,
+  ResponsiveContainer,
+  XAxis,
+  YAxis,
+} from "recharts";
 import { v4 as uuid } from "uuid";
 
 import {
@@ -48,7 +56,7 @@ export function LineChartComp({ data, title, description, tooltipName }) {
       value: dayMatch ? dayMatch.totalTokenUsage : 0,
     };
   });
-  // Sum of usage over the week
+
   const totalFirstHalf = chartData
     ?.slice(0, 3)
     .reduce((sum, d) => sum + d.value, 0);
@@ -61,92 +69,107 @@ export function LineChartComp({ data, title, description, tooltipName }) {
     growthPercentage =
       ((totalSecondHalf - totalFirstHalf) / totalFirstHalf) * 100;
   }
+
   return (
-    <Card className="w-full bg-[var(--color-base-300)]/40 ">
-      <div className="flex">
-        <div className="flex flex-col justify-between w-1/2 pl-4 pb-4">
-          <div className="flex flex-col gap-y-3">
-            <CardHeader className="gap-y-0.5 w-full p-0">
-              <CardTitle className="text-xl">{title}</CardTitle>
-              <CardDescription>{description}</CardDescription>
+    <Card className="w-full min-w-0 overflow-hidden bg-base-300/40">
+      <div className="flex flex-col gap-4 p-4 sm:gap-5 sm:p-6 lg:flex-row lg:items-stretch">
+        <div className="flex w-full min-w-0 flex-col justify-between gap-4 lg:w-2/5 xl:w-[38%]">
+          <div className="flex flex-col gap-2 sm:gap-3">
+            <CardHeader className="w-full gap-y-0.5 p-0">
+              <CardTitle className="text-base sm:text-lg lg:text-xl">
+                {title}
+              </CardTitle>
+              <CardDescription className="text-xs sm:text-sm">
+                {description}
+              </CardDescription>
             </CardHeader>
-            <h1 className="text-5xl font-bold">
+            <p className="break-all text-2xl font-bold sm:text-3xl md:text-4xl lg:text-5xl">
               {data?.totalTokenUsage.toLocaleString("en-IN")}
-            </h1>
+            </p>
           </div>
-          <div className="flex">
-            <CardFooter className="flex-col items-start gap-y-2 text-sm p-0 ">
-              <div className="flex gap-2 font-medium leading-none items-center">
-                {growthPercentage >= 0 ? (
-                  <>
-                    Trending up by {growthPercentage.toFixed(1)}%
-                    <TrendingUp className="h-4 w-4 text-green-500" />
-                  </>
-                ) : (
-                  <>
-                    Dropped by {Math.abs(growthPercentage).toFixed(1)}%
-                    <TrendingUp className="h-4 w-4 rotate-180 text-red-500" />
-                  </>
-                )}
-              </div>
-              <div className="leading-none text-muted-foreground">
-                Estimated token cost $
-                {data?.totalTokenCost.toLocaleString("en-IN")}
-              </div>
-            </CardFooter>
-          </div>
+
+          <CardFooter className="flex-col items-start gap-2 p-0 text-xs sm:text-sm">
+            <div className="flex flex-wrap items-center gap-2 font-medium leading-none">
+              {growthPercentage >= 0 ? (
+                <>
+                  Trending up by {growthPercentage.toFixed(1)}%
+                  <TrendingUp className="h-4 w-4 shrink-0 text-green-500" />
+                </>
+              ) : (
+                <>
+                  Dropped by {Math.abs(growthPercentage).toFixed(1)}%
+                  <TrendingUp className="h-4 w-4 shrink-0 rotate-180 text-red-500" />
+                </>
+              )}
+            </div>
+            <div className="leading-snug text-muted-foreground">
+              Estimated token cost $
+              {data?.totalTokenCost.toLocaleString("en-IN")}
+            </div>
+          </CardFooter>
         </div>
-        <CardContent className=" p-0">
-          <ChartContainer config={chartConfig}>
-            <LineChart
-              width={500}
-              height={200}
-              data={chartData}
-              margin={{
-                right: 24,
-              }}
-            >
-              <CartesianGrid vertical={false} strokeDasharray="3 3" />
-              <XAxis
-                dataKey="month"
-                tickLine={false}
-                axisLine={false}
-                tickMargin={8}
-              />
-              <YAxis tickLine={false} axisLine={false} tickMargin={8} />
-              <ChartTooltip
-                cursor={false}
-                className="bg-[var(--color-base-300)]/60"
-                content={
-                  <ChartTooltipContent
-                    indicator="line"
-                    nameKey={tooltipName}
-                    hideLabel="true"
-                    formatter={(value) => `${value.toLocaleString("en-IN")} ${tooltipName}`}
-                  />
-                }
-              />
-              <Line
-                className="h-full"
-                dataKey="value"
-                type="monotone"
-                stroke="#3b82f6"
-                strokeWidth={3}
-                dot={(props) => {
-                  const { cx, cy } = props;
-                  return (
-                    <Dot
-                      key={uuid()}
-                      r={4}
-                      cx={cx?.toString()}
-                      cy={cy?.toString()}
-                      fill="#3b82f6"
-                      stroke="#3b82f6"
+
+        <CardContent className="min-w-0 flex-1 p-0">
+          <ChartContainer
+            config={chartConfig}
+            className="aspect-auto h-[180px]! w-full min-w-0 sm:h-[200px]!"
+          >
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart
+                data={chartData}
+                margin={{ top: 8, right: 12, left: -12, bottom: 0 }}
+              >
+                <CartesianGrid vertical={false} strokeDasharray="3 3" />
+                <XAxis
+                  dataKey="month"
+                  tickLine={false}
+                  axisLine={false}
+                  tickMargin={8}
+                  tick={{ fontSize: 11 }}
+                  tickFormatter={(value) => value.slice(0, 3)}
+                />
+                <YAxis
+                  tickLine={false}
+                  axisLine={false}
+                  tickMargin={8}
+                  tick={{ fontSize: 11 }}
+                  width={36}
+                />
+                <ChartTooltip
+                  cursor={false}
+                  className="bg-base-300/60"
+                  content={
+                    <ChartTooltipContent
+                      indicator="line"
+                      nameKey={tooltipName}
+                      hideLabel="true"
+                      formatter={(value) =>
+                        `${value.toLocaleString("en-IN")} ${tooltipName}`
+                      }
                     />
-                  );
-                }}
-              />
-            </LineChart>
+                  }
+                />
+                <Line
+                  dataKey="value"
+                  type="monotone"
+                  stroke="#3b82f6"
+                  strokeWidth={2}
+                  dot={(props) => {
+                    const { cx, cy } = props;
+                    return (
+                      <Dot
+                        key={uuid()}
+                        r={3}
+                        cx={cx?.toString()}
+                        cy={cy?.toString()}
+                        fill="#3b82f6"
+                        stroke="#3b82f6"
+                      />
+                    );
+                  }}
+                />
+              </LineChart>
+            </ResponsiveContainer>
           </ChartContainer>
         </CardContent>
       </div>

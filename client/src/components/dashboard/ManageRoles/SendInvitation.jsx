@@ -31,7 +31,7 @@ export default function SendInvitation({invitations, setInvitations}) {
     }
 
   return (
-    <form className="flex flex-col gap-y-1 items-center bg-[var(--color-base-300)]/40 py-3 rounded-lg shadow-xl" onSubmit={handleSubmit(sendInvitation)}>
+    <form className="flex flex-col gap-y-1 items-center bg-base-300/40 py-3 rounded-lg shadow-xl" onSubmit={handleSubmit(sendInvitation)}>
         <h1 className="capitalize text-lg font-bold">Invite users</h1>
         <div className="flex flex-col items-center w-full justify-center">
           <input type="text" placeholder="Enter email" className="outline-none w-11/12 border p-2 rounded-lg text-center" {...register('email')}/>
@@ -52,7 +52,7 @@ export default function SendInvitation({invitations, setInvitations}) {
           <p className={`${errors?.role?.message ? `visible` : `invisible`} text-red-600 text-sm`}>{errors?.role?.message || `Error`}</p>
         </div>
         <div className="flex">
-          <button className="flex gap-x-0.5 justify-center items-center bg-[var(--color-neutral)] text-[var(--color-neutral-content)] p-2 rounded-lg cursor-pointer"> <Send size={16}/> Send invitation </button>
+          <button className="flex gap-x-0.5 justify-center items-center bg-neutral text-neutral-content p-2 rounded-lg cursor-pointer"> <Send size={16}/> Send invitation </button>
         </div>
       </form>
   )

@@ -1,7 +1,10 @@
 const express = require("express");
 const router = express.Router();
-const { allWorkflows } = require("../controllers/workflowController");
+const {
+  allWorkflows,
+  allWorkflowsAuth,
+} = require("../controllers/workflowController");
 
-router.get("/allWorkflows", allWorkflows);
+router.get("/allWorkflows", allWorkflowsAuth, allWorkflows);
 
 module.exports = router;

@@ -104,7 +104,9 @@ export default function ForgotPassword({ update, setUpdate, setTabs }) {
 
   return (
     <div className="flex flex-col justify-center items-center h-full gap-y-5">
-      <h1 className="text-4xl font-bold uppercase p-3">Forgot Password</h1>
+      <h1 className="w-full px-2 py-1 text-center text-xl font-bold uppercase tracking-tight sm:text-2xl md:text-3xl">
+        Forgot Password
+      </h1>
       {!update.newPassword ? (
         <form
           className="flex flex-col w-full gap-y-5"
@@ -174,7 +176,7 @@ export default function ForgotPassword({ update, setUpdate, setTabs }) {
 
           <button
             type="submit"
-            className="bg-[var(--color-neutral)] text-[var(--color-neutral-content)] py-3 w-full rounded-full font-bold cursor-pointer"
+            className="bg-neutral text-neutral-content py-3 w-full rounded-full font-bold cursor-pointer"
           >
             {update.verifyOTP ? "Verify OTP" : "Send OTP"}
           </button>
@@ -214,7 +216,7 @@ export default function ForgotPassword({ update, setUpdate, setTabs }) {
 
           <button
             type="submit"
-            className="bg-[var(--color-neutral)] text-[var(--color-neutral-content)] py-3 w-full rounded-full font-bold cursor-pointer"
+            className="bg-neutral text-neutral-content py-3 w-full rounded-full font-bold cursor-pointer"
             onClick={createNewPassword}
           >
             Save Password

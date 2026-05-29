@@ -1,14 +1,14 @@
 (() => {
-  const add = tool(
+  const multiply = tool(
     async ({ a, b }) => {
       const x = Number(a);
       const y = Number(b);
-      const result = x + y;
-      return `The sum of ${x} and ${y} is ${result}`;
+      const result = x * y;
+      return `The product of ${x} and ${y} is ${result}`;
     },
     {
-      name: "add",
-      description: "Add two numbers together",
+      name: "multiply",
+      description: "Multiply two numbers together",
       schema: z.object({
         a: z.number().describe("The first number"),
         b: z.number().describe("The second number"),
@@ -16,5 +16,5 @@
     }
   );
 
-  global.toolNode = add;
+  global.toolNode = multiply;
 })();

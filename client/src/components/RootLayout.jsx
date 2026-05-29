@@ -1,110 +1,120 @@
-import React, { useContext } from "react";
+import { useContext, useState } from "react";
 import { Outlet, useLocation } from "react-router-dom";
 import ThemeSwitcher from "./ThemeSwitcher";
 import { ThemeContext } from "../context/ThemeContext";
 import logo from "../assets/images/aiopshublogo.png";
 import Sidebar from "./Sidebar";
-import { LayoutDashboard, Wrench, MessageCircle, PencilRuler, History, Puzzle, Settings } from "lucide-react";
+import MobileNav from "./MobileNav";
+import { Menu } from "lucide-react";
 import { TypingAnimation } from "./magicui/typing-animation";
-import { useAuthStore } from "@/store/useAuthStore";
+import { dashboardRoutes, getRouteForPath } from "@/config/dashboardRoutes";
+import { cn } from "@/lib/utils";
 
-
-const routes = [
-  {
-    path: '/dashboard',
-    name: 'Dashboard',
-    icon: LayoutDashboard,
-    access: ['Admin', 'Editor', 'Viewer'],
-  },
-  {
-    path: '/dashboard/chatwithagent',
-    name: 'AI Chat',
-    icon: MessageCircle,
-    access: ['Admin', 'Editor', 'Viewer'],
-  },
-  {
-    path: '/dashboard/editor/agentbuilder',
-    name: 'Agent Builder',
-    icon: PencilRuler,
-    access: ['Admin', 'Editor'],
-  },
-  {
-    path: '/dashboard/editor/toolmanager',
-    name: 'Tool Manager',
-    icon: Wrench,
-    access: ['Admin', 'Editor'],
-  },
-  {
-    path: '/dashboard/historyanalytics',
-    name: 'History & Analytics',
-    icon: History,
-    access: ['Admin', 'Editor', 'Viewer'],
-  },
-  {
-    path: '/dashboard/admin/manageroles',
-    name: 'Manage Roles',
-    icon: Puzzle,
-    access: ['Admin'],
-  },
-  {
-    path: '/dashboard/settings',
-    name: 'Settings',
-    icon: Settings,
-    access: ['Admin', 'Editor', 'Viewer'],
-  },
-];
 export default function RootLayout() {
   const { theme } = useContext(ThemeContext);
-  const { user } = useAuthStore();
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const location = useLocation();
   const pathname = location.pathname;
-
-  const titleData = routes.find(route => route.path === pathname);
+  const isDashboard = pathname.includes("/dashboard");
+  const isAuth = ["/login", "/signup", "/role-selection", "/auth-success"].includes(
+    pathname
+  );
+  const isHome = pathname === "/";
+  const usesUnifiedGlass = isDashboard || isAuth || isHome;
+  const titleData = getRouteForPath(pathname);
 
   return (
     <div
-      className={`flex bg-[var(--color-base-300)] text-[var(--color-base-content)] h-screen overflow-hidden selection:bg-[var(--color-neutral-content)] ${
+      className={`flex h-dvh overflow-hidden bg-base-300 text-base-content selection:bg-neutral-content ${
         theme === "dark"
           ? "bg-[url('./assets/images/nightRobo.png')]"
           : "bg-[url('./assets/images/robo.png')]"
       } bg-cover bg-center`}
     >
-    <div className="flex">
-      <Sidebar routes={routes} />
-    </div>
-      <div className="flex flex-col w-full relative bg-[var(--color-base-300)]/10 backdrop-blur-sm">
-        <nav className=" p-6 w-full ">
-          <div className="flex justify-between items-center">
-            <div className="flex">
-            {
-              !pathname.includes('/dashboard') ? 
-              <h1 className={`text-3xl font-bold  items-center justify-center flex`}>
-                <img
-                  src={logo}
-                  alt="Logo"
-                  className="w-12 h-12 -translate-y-0.5"
-                />
-                AIOpsHub
-              </h1> : <h1 className={`text-4xl font-bold  items-center justify-center flex gap-x-2 h-fit py-0.5`}>{<titleData.icon size={30} strokeWidth={2.5}/>} <TypingAnimation duration={40}>{titleData.name}</TypingAnimation></h1>
-               
-            }
-              
+      {isDashboard && <Sidebar routes={dashboardRoutes} />}
+
+      {isDashboard && (
+        <MobileNav
+          open={mobileMenuOpen}
+          onClose={() => setMobileMenuOpen(false)}
+          routes={dashboardRoutes}
+        />
+      )}
+
+      <div className="relative z-0 flex min-h-0 min-w-0 flex-1">
+        {isDashboard && (
+          <div
+            className="hidden w-[70px] shrink-0 lg:block"
+            aria-hidden
+          />
+        )}
+        <div
+          className={cn(
+            "flex min-h-0 min-w-0 flex-1 flex-col",
+            usesUnifiedGlass && "glass-surface--subtle"
+          )}
+        >
+          <header
+            className={cn(
+              "relative z-20 shrink-0 px-3 py-2.5 sm:px-6 sm:py-4",
+              isDashboard && "border-b border-base-content/10"
+            )}
+          >
+          <div className="flex items-center gap-2 sm:gap-3">
+            {isDashboard && (
+              <button
+                type="button"
+                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-base-content/10 bg-base-100/50 lg:hidden"
+                onClick={() => setMobileMenuOpen(true)}
+                aria-label="Open menu"
+              >
+                <Menu className="h-5 w-5" />
+              </button>
+            )}
+
+            <div className="flex min-w-0 flex-1 items-center overflow-hidden">
+              {!isDashboard ? (
+                <h1 className="flex min-w-0 items-center truncate text-lg font-bold sm:text-3xl">
+                  <img
+                    src={logo}
+                    alt="Logo"
+                    className="mr-2 h-8 w-8 shrink-0 sm:h-12 sm:w-12"
+                  />
+                  <span className="truncate">AIOpsHub</span>
+                </h1>
+              ) : titleData ? (
+                <h1 className="flex min-w-0 items-center gap-2 overflow-hidden text-base font-bold sm:text-2xl lg:text-3xl">
+                  <titleData.icon
+                    className="h-5 w-5 shrink-0 sm:h-7 sm:w-7"
+                    strokeWidth={2.5}
+                  />
+                  <span className="min-w-0 truncate">
+                    <TypingAnimation
+                      as="span"
+                      duration={40}
+                      className="block truncate text-base font-bold sm:text-2xl lg:text-3xl"
+                    >
+                      {titleData.name}
+                    </TypingAnimation>
+                  </span>
+                </h1>
+              ) : (
+                <h1 className="truncate text-base font-bold sm:text-2xl">
+                  Dashboard
+                </h1>
+              )}
             </div>
-            <div className="flex items-center gap-x-5">
-              {/* <div className="flex relative">
-                <Search size={20} className="absolute left-2 top-1/2 -translate-y-1/2 text-[var(--color-base-content)]" />
-                <input type="search" name="search" id="search" placeholder="Search..." className="bg-[var(--color-base-300)] rounded-full py-2 pl-8 pr-3 w-60 border border-[var(--color-base-content)] outline-none" />
-              </div> */}
-              <ThemeSwitcher />
-            </div>
+
+            <ThemeSwitcher />
           </div>
-        </nav>
-        <div className="h-[calc(100vh-92px)] fixed bottom-0 w-full overflow-y-auto">
-          <Outlet />
+          </header>
+
+          <main className="relative min-h-0 flex-1 overflow-x-hidden overflow-y-auto">
+            <Outlet />
+          </main>
         </div>
       </div>
-
     </div>
   );
 }

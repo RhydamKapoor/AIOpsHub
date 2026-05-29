@@ -2,6 +2,7 @@ const User = require("../models/User");
 const bcrypt = require("bcryptjs");
 const nodemailer = require("nodemailer");
 const { SignJWT } = require("jose");
+const { userForToken, resolveUserId } = require("../utils/resolveUserId");
 
 const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET);
 const ONE_DAY = 24 * 60 * 60 * 1000;
@@ -10,7 +11,7 @@ const ONE_DAY = 24 * 60 * 60 * 1000;
    Helper: Create JWT
 ---------------------------------------------------- */
 const createToken = async (userWithoutPassword) => {
-  return await new SignJWT({ details: userWithoutPassword })
+  return await new SignJWT({ details: userForToken(userWithoutPassword) })
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
     .setExpirationTime("1d")
@@ -84,7 +85,7 @@ exports.getCurrentUser = async (req, res) => {
   try {
     const user = req.user.details;
     if (!user) return res.status(404).json({ msg: "User not found" });
-    res.json(user);
+    res.json({ ...user, _id: resolveUserId(user._id) });
   } catch (err) {
     res.status(500).json({ msg: err.message });
   }
@@ -110,7 +111,7 @@ exports.logout = (req, res) => {
 ---------------------------------------------------- */
 exports.updateProfile = async (req, res) => {
   try {
-    const userId = req.user.details._id;
+    const userId = resolveUserId(req.user.details._id);
     const { firstName, lastName, email } = req.body;
 
     const updatedUser = await User.findByIdAndUpdate(

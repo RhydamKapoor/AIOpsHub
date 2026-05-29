@@ -12,7 +12,7 @@ export default function AllInvitations({invitations, setInvitations}) {
         setInvitations(history)
     }
   return (
-    <motion.div className={`flex flex-col gap-y-4 items-center bg-[var(--color-base-300)]/40 py-3 h-auto rounded-lg shadow-xl overflow-hidden`}
+    <motion.div className={`flex flex-col gap-y-4 items-center bg-base-300/40 py-3 h-auto rounded-lg shadow-xl overflow-hidden`}
     initial={{height: '9%'}}
     animate={{height: open ? "100%" : "9%"}} transition={{duration: 0.4}}
     >
@@ -24,7 +24,7 @@ export default function AllInvitations({invitations, setInvitations}) {
       {
         invitations.map((invitee, i) => {
             return(
-                <div className="flex bg-[var(--color-base-100)]/40 p-2 rounded-lg" key={i}>
+                <div className="flex bg-base-100/40 p-2 rounded-lg" key={i}>
                     <div className="flex flex-col w-full">
                         <div className="flex w-full">
                         <label htmlFor="email" className="w-14 font-semibold">

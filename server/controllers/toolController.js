@@ -12,6 +12,9 @@ const path = require("path");
 const fs = require("fs");
 const { encrypt, decrypt } = require("../utils/encryption");
 const Agent = require("../models/Agent");
+const Workflow = require("../models/AllStats");
+const { runAgentWithTools } = require("../utils/agentRunner");
+const { getUserIdFromRequest } = require("../utils/resolveUserId");
 // const { StringOutputParser } = require("@langchain/core/output_parsers");
 // const { PromptTemplate } = require("@langchain/core/prompts");
 // const { RunnableSequence } = require("@langchain/core/runnables");
@@ -306,34 +309,95 @@ exports.testTool = async (req, res) => {
   }
 };
 
+function validateAgentPayload(body) {
+  const {
+    agentName,
+    agentDescription,
+    userQuery,
+    llm,
+    nodes,
+    edges,
+  } = body;
+  if (
+    !agentName?.trim() ||
+    !agentDescription?.trim() ||
+    !userQuery?.trim() ||
+    !llm ||
+    !nodes?.length ||
+    !edges?.length
+  ) {
+    return "Agent name, description, prompt, LLM, and workflow graph are required";
+  }
+  return null;
+}
 
-// Create a new agent
+async function executeAgentRun({
+  agentName,
+  agentDescription,
+  userQuery,
+  llm,
+  selectedTools,
+  userId,
+  workflowTitle,
+}) {
+  const systemPrompt = `You are the agent "${agentName}". ${agentDescription}`;
+  const runResult = await runAgentWithTools({
+    tools: selectedTools || [],
+    llm,
+    userMessage: userQuery,
+    systemPrompt,
+  });
+
+  if (!runResult.finalResponse) {
+    throw new Error("Agent did not produce a response");
+  }
+
+  const workflow = new Workflow({
+    user: userId,
+    title: workflowTitle || `Agent: ${agentName}`,
+    steps: runResult.history,
+    finalResponse: runResult.finalResponse,
+    totalTokenUsage: runResult.totalTokenUsage,
+  });
+  await workflow.save();
+
+  return runResult;
+}
+
 exports.createAgent = async (req, res) => {
   try {
-    const { agentName, agentDescription, userQuery, llm, selectedTools, output, nodes, edges } =
-      req.body;
+    const {
+      agentName,
+      agentDescription,
+      userQuery,
+      llm,
+      selectedTools,
+      output,
+      nodes,
+      edges,
+    } = req.body;
 
-    if (!agentName || !agentDescription || !nodes || !edges || !userQuery || !output || !llm) {
-      return res
-        .status(400)
-        .json({ message: "Agent Name, description, selected tools, llm, user query, output and edges are required" });
+    const validationError = validateAgentPayload(req.body);
+    if (validationError) {
+      return res.status(400).json({ message: validationError });
     }
-    const isAgentExists = await Agent.findOne({name: agentName});
+
+    const isAgentExists = await Agent.findOne({ name: agentName.trim() });
     if (isAgentExists) {
       return res.status(400).json({ message: "Agent already exists" });
     }
 
     const agent = new Agent({
-      name: agentName,
-      description: agentDescription,
+      name: agentName.trim(),
+      description: agentDescription.trim(),
       tools: selectedTools || [],
       llm,
       view: {
         nodes,
         edges,
         userQuery,
-        output
-      }
+        output: output || "",
+      },
     });
 
     await agent.save();
@@ -346,144 +410,177 @@ exports.createAgent = async (req, res) => {
   }
 };
 
-// // Get all agents
-// exports.getAllAgents = async (req, res) => {
-//   try {
-//     const agents = await Agent.find().populate("tools");
-//     res.status(200).json(agents);
-//   } catch (error) {
-//     console.error("Error fetching agents:", error);
-//     res
-//       .status(500)
-//       .json({ message: "Failed to fetch agents", error: error.message });
-//   }
-// };
+exports.getAllAgents = async (req, res) => {
+  try {
+    const agents = await Agent.find().sort({ createdAt: -1 });
+    res.status(200).json(agents);
+  } catch (error) {
+    console.error("Error fetching agents:", error);
+    res
+      .status(500)
+      .json({ message: "Failed to fetch agents", error: error.message });
+  }
+};
 
-// // Get a single agent
-// exports.getAgent = async (req, res) => {
-//   try {
-//     const agent = await Agent.findById(req.params.id).populate("tools");
+exports.getAgent = async (req, res) => {
+  try {
+    const agent = await Agent.findById(req.params.id);
+    if (!agent) {
+      return res.status(404).json({ message: "Agent not found" });
+    }
+    res.status(200).json(agent);
+  } catch (error) {
+    console.error("Error fetching agent:", error);
+    res
+      .status(500)
+      .json({ message: "Failed to fetch agent", error: error.message });
+  }
+};
 
-//     if (!agent) {
-//       return res.status(404).json({ message: "Agent not found" });
-//     }
+exports.updateAgent = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const {
+      agentName,
+      agentDescription,
+      userQuery,
+      llm,
+      selectedTools,
+      output,
+      nodes,
+      edges,
+    } = req.body;
 
-//     res.status(200).json(agent);
-//   } catch (error) {
-//     console.error("Error fetching agent:", error);
-//     res
-//       .status(500)
-//       .json({ message: "Failed to fetch agent", error: error.message });
-//   }
-// };
+    const validationError = validateAgentPayload(req.body);
+    if (validationError) {
+      return res.status(400).json({ message: validationError });
+    }
 
-// // Delete an agent
-// exports.deleteAgent = async (req, res) => {
-//   try {
-//     const agent = await Agent.findByIdAndDelete(req.params.id);
+    const agent = await Agent.findById(id);
+    if (!agent) {
+      return res.status(404).json({ message: "Agent not found" });
+    }
 
-//     if (!agent) {
-//       return res.status(404).json({ message: "Agent not found" });
-//     }
+    const duplicate = await Agent.findOne({
+      name: agentName.trim(),
+      _id: { $ne: id },
+    });
+    if (duplicate) {
+      return res.status(400).json({ message: "Another agent uses this name" });
+    }
 
-//     res.status(200).json({ message: "Agent deleted successfully" });
-//   } catch (error) {
-//     console.error("Error deleting agent:", error);
-//     res
-//       .status(500)
-//       .json({ message: "Failed to delete agent", error: error.message });
-//   }
-// };
+    agent.name = agentName.trim();
+    agent.description = agentDescription.trim();
+    agent.tools = selectedTools || [];
+    agent.llm = llm;
+    agent.view = { nodes, edges, userQuery, output: output || "" };
 
-// // Run an agent
-// exports.runAgent = async (req, res) => {
-//   try {
-//     const { id } = req.params;
-//     const { input, tracingEnabled } = req.body;
+    await agent.save();
+    res.status(200).json({ message: "Agent updated successfully", agent });
+  } catch (error) {
+    console.error("Error updating agent:", error);
+    res
+      .status(500)
+      .json({ message: "Failed to update agent", error: error.message });
+  }
+};
 
-//     const agent = await Agent.findById(id).populate("tools");
+exports.deleteAgent = async (req, res) => {
+  try {
+    const agent = await Agent.findByIdAndDelete(req.params.id);
+    if (!agent) {
+      return res.status(404).json({ message: "Agent not found" });
+    }
+    res.status(200).json({ message: "Agent deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting agent:", error);
+    res
+      .status(500)
+      .json({ message: "Failed to delete agent", error: error.message });
+  }
+};
 
-//     if (!agent) {
-//       return res.status(404).json({ message: "Agent not found" });
-//     }
+exports.runAgent = async (req, res) => {
+  try {
+    const agent = await Agent.findById(req.params.id);
+    if (!agent) {
+      return res.status(404).json({ message: "Agent not found" });
+    }
 
-//     // Create LangChain tools from the agent's associated tools
-//     const langchainTools = agent.tools.map(convertDbToolToLangChainTool);
+    const userQuery = req.body.input?.trim() || agent.view?.userQuery;
+    if (!userQuery) {
+      return res.status(400).json({ message: "Prompt is required to run agent" });
+    }
 
-//     // Initialize the Groq model
-//     const model = getGroqModel();
+    const userId = getUserIdFromRequest(req);
+    if (!userId) {
+      return res.status(401).json({ message: "Invalid user session" });
+    }
+    const runResult = await executeAgentRun({
+      agentName: agent.name,
+      agentDescription: agent.description,
+      userQuery,
+      llm: agent.llm,
+      selectedTools: agent.tools,
+      userId,
+      workflowTitle: `Agent: ${agent.name}`,
+    });
 
-//     // Create the agent prompt
-//     const agentPrompt = PromptTemplate.fromTemplate(`
-//       You are an AI assistant using the Groq LLM model with access to the following tools:
+    agent.view = {
+      ...agent.view,
+      userQuery,
+      output: runResult.finalResponse,
+    };
+    await agent.save();
 
-//       {tools}
+    res.status(200).json({
+      result: runResult.finalResponse,
+      toolsLoaded: runResult.toolsLoaded,
+      tokenUsage: runResult.totalTokenUsage,
+    });
+  } catch (error) {
+    console.error("Error running agent:", error);
+    res.status(500).json({ message: error.message || "Failed to run agent" });
+  }
+};
 
-//       Use these tools to help answer the user's question.
+exports.runAgentPreview = async (req, res) => {
+  try {
+    const {
+      agentName,
+      agentDescription,
+      userQuery,
+      llm,
+      selectedTools,
+    } = req.body;
 
-//       User Question: {input}
+    if (!agentName?.trim() || !agentDescription?.trim() || !userQuery?.trim() || !llm) {
+      return res.status(400).json({
+        message: "Agent name, description, prompt, and LLM are required to run",
+      });
+    }
 
-//       Think step by step about how to use the available tools to answer the question.
+    const userId = getUserIdFromRequest(req);
+    if (!userId) {
+      return res.status(401).json({ message: "Invalid user session" });
+    }
+    const runResult = await executeAgentRun({
+      agentName: agentName.trim(),
+      agentDescription: agentDescription.trim(),
+      userQuery: userQuery.trim(),
+      llm,
+      selectedTools: selectedTools || [],
+      userId,
+      workflowTitle: `Preview: ${agentName.trim()}`,
+    });
 
-//       Your response:
-//     `);
-
-//     // Create the agent chain
-//     const chain = RunnableSequence.from([
-//       {
-//         input: (input) => input.input,
-//         tools: () => {
-//           const toolDescriptions = langchainTools
-//             .map((tool) => {
-//               return `${tool.name}: ${tool.description}`;
-//             })
-//             .join("\n\n");
-//           return toolDescriptions;
-//         },
-//       },
-//       agentPrompt,
-//       model,
-//       new StringOutputParser(),
-//     ]);
-
-//     let runId = null;
-
-//     try {
-//       // Set up LangSmith tracing if enabled
-//       const config = {};
-
-//       if (tracingEnabled && langsmithClient) {
-//         config.callbacks = [langsmithClient.callback];
-//         config.metadata = { agentId: id, agentName: agent.name };
-//         config.projectName =
-//           agent.langSmithProjectId || process.env.LANGCHAIN_PROJECT;
-//       }
-
-//       // Run the agent
-//       const result = await chain.invoke({ input }, config);
-
-//       // Get the run ID if tracing was enabled
-//       if (tracingEnabled && config.callbacks && config.callbacks[0].runId) {
-//         runId = config.callbacks[0].runId;
-//       }
-
-//       res.status(200).json({
-//         result,
-//         runId,
-//         langSmithUrl: runId
-//           ? `https://smith.langchain.com/runs/${runId}`
-//           : null,
-//       });
-//     } catch (error) {
-//       console.error("Error running agent chain:", error);
-//       res
-//         .status(500)
-//         .json({ message: "Failed to run agent", error: error.message });
-//     }
-//   } catch (error) {
-//     console.error("Error running agent:", error);
-//     res
-//       .status(500)
-//       .json({ message: "Failed to run agent", error: error.message });
-//   }
-// };
+    res.status(200).json({
+      result: runResult.finalResponse,
+      toolsLoaded: runResult.toolsLoaded,
+      tokenUsage: runResult.totalTokenUsage,
+    });
+  } catch (error) {
+    console.error("Error running agent preview:", error);
+    res.status(500).json({ message: error.message || "Failed to run agent" });
+  }
+};

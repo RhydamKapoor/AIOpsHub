@@ -1,29 +1,37 @@
-import { Minus, Plus, Trash, Triangle } from "lucide-react";
+import { ChevronDown, Play, Trash, Upload } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
-import { motion } from "motion/react";
 import ToolTestingArea from "@/components/dashboard/ToolManager/ToolTestingArea";
 import axiosInstance from "../../utils/axiosConfig";
 import { toast } from "react-hot-toast";
+import { cn } from "@/lib/utils";
+import { useIsDesktop } from "@/hooks/useMediaQuery";
+import {
+  CollapsiblePanel,
+  accordionChevronClass,
+} from "@/components/ui/CollapsiblePanel";
 
 export default function ToolManager() {
   const { register, handleSubmit, watch, setValue, reset } = useForm({
     defaultValues: {
-      env: [
-        { key: "", value: "" },
-      ],
+      env: [{ key: "", value: "" }],
+      testPrompt: "",
     },
   });
   const [uploadedTools, setUploadedTools] = useState([]);
-  const [testToolBar, setTestToolBar] = useState({
-    open: false,
-  });
+  const [testToolBar, setTestToolBar] = useState({ open: false, tool: null });
   const [loading, setLoading] = useState(false);
   const [fileStore, setFileStore] = useState({
     fileName: "",
     fileContent: "",
     fileType: "",
   });
+  const [uploadFormOpen, setUploadFormOpen] = useState(false);
+  const isDesktop = useIsDesktop();
+
+  useEffect(() => {
+    setUploadFormOpen(isDesktop);
+  }, [isDesktop]);
 
   const fetchTools = async () => {
     try {
@@ -42,32 +50,28 @@ export default function ToolManager() {
     const file = e.target.files[0];
     if (!file) return;
 
-    // Check file extension
     const extension = file.name.split(".").pop().toLowerCase();
     if (extension !== "js" && extension !== "py") {
       toast.error("Only .js and .py files are supported");
       return;
     }
 
-    // Read file content
     const reader = new FileReader();
-    reader.onload = (e) => {
+    reader.onload = (ev) => {
       setFileStore({
         fileName: file.name,
         fileType: extension === "js" ? "javascript" : "python",
-        fileContent: e.target.result,
+        fileContent: ev.target.result,
       });
     };
     reader.readAsText(file);
   };
 
   const uploadTool = async (data) => {
-    console.log(data);
     if (!fileStore.fileContent) {
       toast.error("Please upload a file first");
       return;
     }
-
     if (!data.title || !data.description) {
       toast.error("Title and description are required");
       return;
@@ -75,25 +79,15 @@ export default function ToolManager() {
 
     setLoading(true);
     try {
-      const toolData = {
+      await axiosInstance.post("/tools", {
         title: data.title,
         description: data.description,
         fileName: fileStore.fileName,
         fileType: fileStore.fileType,
         code: fileStore.fileContent,
         env: data.env,
-      };
-
-      await axiosInstance.post("/tools", toolData);
+      });
       toast.success("Tool uploaded successfully");
-
-      // Reset form and fetch updated tools
-      // reset();
-      // setFileStore({
-      //   fileName: "",
-      //   fileContent: "",
-      //   fileType: "",
-      // });
       fetchTools();
     } catch (error) {
       console.error("Error uploading tool:", error);
@@ -105,14 +99,14 @@ export default function ToolManager() {
 
   const deleteTool = async (id) => {
     if (!id) return;
-
     setLoading(true);
     try {
       await axiosInstance.delete(`/tools/${id}`);
       toast.success("Tool deleted successfully");
-
-      // Update local state
-      setUploadedTools(uploadedTools.filter((tool) => tool._id !== id));
+      setUploadedTools((prev) => prev.filter((tool) => tool._id !== id));
+      if (testToolBar.tool?._id === id) {
+        setTestToolBar({ open: false, tool: null });
+      }
     } catch (error) {
       console.error("Error deleting tool:", error);
       toast.error("Failed to delete tool");
@@ -122,12 +116,10 @@ export default function ToolManager() {
   };
 
   const testTool = async (id, testInput) => {
-    // debugger;
     if (!testInput) {
-      toast.error("Test input are required");
-      return;
+      toast.error("Test input is required");
+      return null;
     }
-
     setLoading(true);
     try {
       const response = await axiosInstance.post(`/tools/${id}/test`, {
@@ -144,169 +136,196 @@ export default function ToolManager() {
     }
   };
 
+  const openTestPanel = (tool) => {
+    setTestToolBar({ open: true, tool });
+  };
+
   useEffect(() => {
     fetchTools();
   }, []);
 
   return (
-    <div className="flex h-full p-4 gap-y-7">
-      <div className="flex w-full shadow-xl rounded-xl bg-[var(--color-base-300)]/40">
-        <div className="flex flex-col h-full gap-y-6 p-6 w-1/3">
-          <div className="flex h-1/5">
+    <div className="w-full p-3 pb-10 sm:p-4 lg:flex lg:h-full lg:min-h-0 lg:flex-col">
+      <div className="flex w-full flex-col rounded-2xl border border-base-content/8 bg-base-300/40 shadow-xl lg:min-h-0 lg:flex-1 lg:flex-row lg:overflow-hidden">
+        {/* Uploaded tools + testing — first on mobile */}
+        <section className="order-1 flex flex-col gap-4 p-4 sm:gap-5 sm:p-6 lg:order-2 lg:min-h-0 lg:flex-1 lg:overflow-hidden">
+          <div className="flex flex-col gap-3 lg:min-h-0 lg:flex-1 lg:overflow-hidden">
+            <div className="flex items-center justify-between gap-2">
+              <h2 className="text-lg font-semibold sm:text-xl">Uploaded Tools</h2>
+              <span className="rounded-full bg-base-300 px-2.5 py-0.5 text-xs font-medium">
+                {uploadedTools.length}
+              </span>
+            </div>
+
+            <div className="flex flex-col gap-3 lg:min-h-0 lg:flex-1 lg:overflow-y-auto lg:pr-1">
+              {uploadedTools.length === 0 ? (
+                <p className="rounded-xl border border-dashed border-base-content/15 py-10 text-center text-sm text-base-content/50">
+                  No tools uploaded yet. Expand &quot;Upload Tool&quot; below to add one.
+                </p>
+              ) : (
+                uploadedTools.map((tool) => (
+                  <article
+                    key={tool._id}
+                    className={cn(
+                      "rounded-xl border border-base-content/10 bg-base-100/50 p-4",
+                      testToolBar.tool?._id === tool._id &&
+                        "ring-2 ring-primary/40"
+                    )}
+                  >
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                      <div className="min-w-0 space-y-1">
+                        <h3 className="truncate font-semibold capitalize">
+                          {tool.title}
+                        </h3>
+                        <p className="text-xs text-base-content/55">
+                          {tool.fileType} · {tool.fileName}
+                        </p>
+                      </div>
+                      <div className="flex shrink-0 items-center gap-2">
+                        <button
+                          type="button"
+                          onClick={() => openTestPanel(tool)}
+                          className="flex min-h-10 flex-1 items-center justify-center gap-1.5 rounded-lg bg-success/15 px-3 py-2 text-sm font-medium text-success sm:flex-initial"
+                        >
+                          <Play className="h-4 w-4" />
+                          Test
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => deleteTool(tool._id)}
+                          className="flex min-h-10 min-w-10 items-center justify-center rounded-lg bg-error/10 text-error"
+                          aria-label="Delete tool"
+                        >
+                          <Trash className="h-4 w-4" />
+                        </button>
+                      </div>
+                    </div>
+                  </article>
+                ))
+              )}
+            </div>
+          </div>
+
+          <ToolTestingArea
+            testToolBar={testToolBar}
+            setTestToolBar={setTestToolBar}
+            register={register}
+            watch={watch}
+            testTool={testTool}
+          />
+        </section>
+
+        {/* Upload form — collapsible on mobile, sidebar on desktop */}
+        <section className="order-2 flex w-full shrink-0 flex-col border-t border-base-content/10 lg:order-1 lg:w-[min(400px,38%)] lg:border-t-0 lg:border-r">
+          <button
+            type="button"
+            className="flex w-full items-center justify-between gap-2 px-4 py-3.5 text-left lg:hidden"
+            onClick={() => setUploadFormOpen((v) => !v)}
+            aria-expanded={uploadFormOpen}
+          >
+            <span className="flex items-center gap-2 font-semibold">
+              <Upload className="h-5 w-5 text-primary" />
+              Upload Tool
+            </span>
+            <ChevronDown className={accordionChevronClass(uploadFormOpen)} />
+          </button>
+
+          <CollapsiblePanel
+            open={uploadFormOpen}
+            alwaysOpenFrom="lg"
+          >
+            <div className="flex flex-col gap-5 p-4 pt-0 sm:p-6 sm:pt-0 lg:pt-6">
+            <div className="hidden lg:block">
+              <h2 className="text-lg font-bold sm:text-xl">Upload Tool</h2>
+              <p className="mt-1 text-xs text-base-content/55 sm:text-sm">
+                Add a .js or .py file and configure it below.
+              </p>
+            </div>
+
             <label
               htmlFor="file"
-              className="flex items-center justify-center w-full h-full bg-[var(--color-base-300)]/40 border-2 border-dashed rounded-xl text-lg cursor-pointer"
+              className="flex min-h-[72px] cursor-pointer items-center justify-center rounded-xl border-2 border-dashed border-base-content/20 bg-base-300/40 px-4 py-4 text-center text-sm"
             >
-              {fileStore?.fileContent
-                ? "File uploaded"
-                : "Upload a tool file (.js or .py file)"}
+              {fileStore?.fileContent ? (
+                <span className="text-success">
+                  ✓ {fileStore.fileName}
+                </span>
+              ) : (
+                "Tap to upload .js or .py file"
+              )}
             </label>
             <input
               type="file"
-              name="file"
               id="file"
               className="hidden"
               onChange={handleFileUpload}
               accept=".js,.py"
             />
-          </div>
 
-          <form
-            className="flex flex-col justify-around h-full"
-            onSubmit={handleSubmit(uploadTool)}
-          >
-            <div className="flex flex-col overflow-hidden">
-              <h1 className="text-base text-center">Environment Variables</h1>
-              <div className="flex *:w-1/2 text-center text-[var(--color-base-content)]/70">
-                <h1>Key</h1>
-                <h1>Value</h1>
-              </div>
-
-              <div className="flex flex-col overflow-y-auto  gap-y-3 h-16 py-1.5">
-                {watch("env")?.map((env, index) => (
-                  <div className="flex text-center gap-x-2" key={index}>
-                    <input
-                      type="text"
-                      id={`key${index}`}
-                      {...register(`env.${index}.key`)}
-                      className="border outline-none rounded-md p-3 w-1/2"
+            <form
+              className="flex flex-col gap-5"
+              onSubmit={handleSubmit(uploadTool)}
+            >
+              <div className="flex flex-col gap-3">
+                <h3 className="text-sm font-semibold">Environment variables</h3>
+                <div className="flex max-h-28 flex-col gap-3 overflow-y-auto sm:max-h-36">
+                  {watch("env")?.map((_, index) => (
+                    <div
+                      className="flex flex-col gap-2 sm:flex-row"
+                      key={index}
+                    >
+                      <input
+                        type="text"
+                        placeholder="Key"
+                        {...register(`env.${index}.key`)}
+                        className="min-h-11 w-full rounded-lg border bg-base-100/50 px-3 py-2.5 text-base outline-none sm:w-1/2"
                       />
                       <input
                         type="text"
-                        id={`value${index}`}
+                        placeholder="Value"
                         {...register(`env.${index}.value`)}
-                        className="border outline-none rounded-md p-3 w-1/2"
+                        className="min-h-11 w-full rounded-lg border bg-base-100/50 px-3 py-2.5 text-base outline-none sm:w-1/2"
                       />
-                      {/* <span className="flex flex-col gap-y-1 items-center justify-center w-fit">
-                        <Plus size={22} className="text-white cursor-pointer rounded-full bg-green-700 p-1" />
-                        <Minus size={22} className="bg-red-700 cursor-pointer rounded-full p-1" />
-                      </span> */}
                     </div>
-                ))}
-              </div>
-            </div>
-
-            <div className="flex flex-col">
-              <label htmlFor="title" className="text-base">
-                Title
-              </label>
-              <input
-                type="text"
-                id="title"
-                {...register("title")}
-                className="border outline-none rounded-md p-3 "
-              />
-            </div>
-
-            <div className="flex flex-col">
-              <label htmlFor="description" className="text-base">
-                Description
-              </label>
-              <textarea
-                type="text"
-                id="description"
-                {...register("description")}
-                className="border outline-none rounded-md p-3"
-                rows={2}
-              ></textarea>
-            </div>
-
-            <div className="flex items-center justify-center">
-              <button
-                type="submit"
-                className="py-3 px-4 bg-[var(--color-neutral)] text-[var(--color-neutral-content)] rounded-lg w-full cursor-pointer disabled:opacity-50"
-                disabled={loading || !fileStore?.fileContent}
-              >
-                {loading ? "Processing..." : "Upload"}
-              </button>
-            </div>
-          </form>
-        </div>
-
-        <div className="flex flex-col w-2/3 p-6 justify-between">
-          <motion.div
-            className="flex flex-col items-center gap-y-3 overflow-hidden"
-            initial={{ height: "100%" }}
-            animate={{ height: testToolBar.open ? "60%" : "100%" }}
-          >
-            <h1 className="text-xl font-semibold">Uploaded Tools</h1>
-            <div className="flex flex-col w-full overflow-y-auto">
-              <div className="px-3 w-full">
-                <div className="flex *:flex *:justify-center *:w-1/3 w-full p-4">
-                  <h1>Tool Name</h1>
-                  <h1>Script</h1>
-                  <h1 className="flex">Action</h1>
+                  ))}
                 </div>
               </div>
-              <div className="flex flex-col w-full gap-y-5 p-3">
-                {uploadedTools.length !== 0 ? (
-                  uploadedTools.map((tool) => (
-                    <div
-                      className="flex *:flex *:justify-center *:w-1/3 capitalize bg-[var(--color-base-100)]/50 rounded-xl p-4"
-                      key={tool._id}
-                    >
-                      <h1>{tool.title}</h1>
-                      <h1>{tool.fileType}</h1>
-                      <h1 className="flex items-center gap-x-5">
-                        <span
-                          onClick={() => setTestToolBar({ open: true, tool })}
-                        >
-                          <Triangle
-                            size={20}
-                            className="-rotate-[30deg] text-green-600 cursor-pointer"
-                          />
-                        </span>
-                        <span onClick={() => deleteTool(tool._id)}>
-                          <Trash
-                            size={20}
-                            className="text-red-700 cursor-pointer"
-                          />
-                        </span>
-                      </h1>
-                    </div>
-                  ))
-                ) : (
-                  <p className="text-center">No tools uploaded yet.</p>
-                )}
-              </div>
-            </div>
-          </motion.div>
 
-          <motion.div
-            className="flex flex-col items-center p-5 overflow-hidden"
-            initial={{ height: "18%" }}
-            animate={{ height: testToolBar.open ? "100%" : "18%" }}
-          >
-            <ToolTestingArea
-              testToolBar={testToolBar}
-              setTestToolBar={setTestToolBar}
-              fileStore={fileStore}
-              register={register}
-              watch={watch}
-              testTool={testTool}
-            />
-          </motion.div>
-        </div>
+              <div className="flex flex-col gap-1.5">
+                <label htmlFor="title" className="text-sm font-medium">
+                  Title
+                </label>
+                <input
+                  type="text"
+                  id="title"
+                  {...register("title")}
+                  className="min-h-11 w-full rounded-lg border bg-base-100/50 px-3 py-2.5 text-base outline-none"
+                />
+              </div>
+
+              <div className="flex flex-col gap-1.5">
+                <label htmlFor="description" className="text-sm font-medium">
+                  Description
+                </label>
+                <textarea
+                  id="description"
+                  rows={2}
+                  {...register("description")}
+                  className="w-full resize-y rounded-lg border bg-base-100/50 px-3 py-2.5 text-base outline-none"
+                />
+              </div>
+
+              <button
+                type="submit"
+                className="min-h-11 w-full rounded-lg bg-neutral px-4 py-3 text-neutral-content disabled:opacity-50"
+                disabled={loading || !fileStore?.fileContent}
+              >
+                {loading ? "Processing..." : "Upload Tool"}
+              </button>
+            </form>
+            </div>
+          </CollapsiblePanel>
+        </section>
       </div>
     </div>
   );

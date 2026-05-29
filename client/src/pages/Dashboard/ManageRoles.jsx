@@ -66,32 +66,53 @@ export default function ManageRoles() {
     fetchRoles()
   }, []);
   return (
-    <div className="flex p-3 h-full">
-      <div className="flex flex-col gap-y-2 w-3/4 items-center *:w-11/12">
-        <div className="flex justify-around font-semibold *:flex *:justify-center *:w-1/4 text-[var(--color-base-content)]/50">
+    <div className="flex h-full flex-col gap-4 p-2 sm:p-4 lg:flex-row lg:gap-6">
+      <div className="flex min-h-0 flex-1 flex-col gap-y-3 overflow-hidden lg:w-2/3">
+        <div className="hidden font-semibold text-base-content/50 sm:grid sm:grid-cols-4 sm:gap-2 sm:px-2">
           <h1>Name</h1>
           <h1>Email</h1>
           <h1>Role</h1>
-          <h1>Change Role</h1>
+          <h1 className="text-center">Change Role</h1>
         </div>
 
-        <div className="flex flex-col gap-y-4">
-          {
-            allUsers && allUsers.filter((user) => user.role !== "Admin").map((user, i)=> (
-              <div className="flex justify-around bg-[var(--color-base-300)]/40 py-3 rounded-lg *:flex *:justify-center *:w-1/4" key={i}>
-                <h1 className="capitalize">{user.firstName + " " + user.lastName}</h1>
-                <h1>{user.email.charAt(0).toUpperCase() + user.email.slice(1)}</h1>
-                <h1>{user.role}</h1>
-                <button><ArrowLeftRight strokeWidth={1.2} className="cursor-pointer" onClick={() => changeRoles(user._id, user.role)}/></button>
-              </div>
-            ))
-          }
+        <div className="flex flex-1 flex-col gap-3 overflow-y-auto">
+          {allUsers &&
+            allUsers
+              .filter((u) => u.role !== "Admin")
+              .map((u, i) => (
+                <div
+                  className="grid grid-cols-1 gap-2 rounded-lg bg-base-300/40 p-3 sm:grid-cols-4 sm:items-center sm:gap-2"
+                  key={i}
+                >
+                  <h1 className="capitalize text-sm sm:text-base">
+                    <span className="font-semibold text-base-content/50 sm:hidden">Name: </span>
+                    {u.firstName} {u.lastName}
+                  </h1>
+                  <h1 className="truncate text-sm sm:text-base">
+                    <span className="font-semibold text-base-content/50 sm:hidden">Email: </span>
+                    {u.email}
+                  </h1>
+                  <h1 className="text-sm sm:text-base">
+                    <span className="font-semibold text-base-content/50 sm:hidden">Role: </span>
+                    {u.role}
+                  </h1>
+                  <div className="flex sm:justify-center">
+                    <button type="button" aria-label="Change role">
+                      <ArrowLeftRight
+                        strokeWidth={1.2}
+                        className="cursor-pointer"
+                        onClick={() => changeRoles(u._id, u.role)}
+                      />
+                    </button>
+                  </div>
+                </div>
+              ))}
         </div>
       </div>
 
-      <div className="flex flex-col gap-y-5 justify-between w-1/4 h-full">
-        <SendInvitation invitations={invitations} setInvitations={setInvitations}/>
-        <AllInvitations invitations={invitations} setInvitations={setInvitations}/>
+      <div className="flex w-full flex-col gap-4 lg:w-1/3 lg:max-w-sm lg:shrink-0">
+        <SendInvitation invitations={invitations} setInvitations={setInvitations} />
+        <AllInvitations invitations={invitations} setInvitations={setInvitations} />
       </div>
     </div>
   )

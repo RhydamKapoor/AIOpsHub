@@ -89,7 +89,7 @@
   --color-warning: oklch(84.71% 0.199 83.87);
   --color-warning-content: oklch(0% 0 0);
   --color-error: oklch(71.76% 0.221 22.18);
-  --color-error-content: oklch(0% 0 0);
+  --color-error-content: oklch(42% 0.18 22.18);
   --radius-selector: 1rem;
   --radius-field: 0.5rem;
   --radius-box: 1rem;
@@ -248,6 +248,35 @@ input{
     transform: translateY(100vh) rotate(360deg);
     opacity: 0;
   }
+}
+
+/* Frosted glass — theme-aware; background image shows through */
+.glass-surface--subtle {
+  background-color: color-mix(in oklch, var(--color-base-300) 12%, transparent);
+  -webkit-backdrop-filter: blur(12px) saturate(140%);
+  backdrop-filter: blur(12px) saturate(140%);
+}
+
+.glass-surface {
+  background: linear-gradient(
+    165deg,
+    color-mix(in oklch, var(--color-base-300) 22%, transparent),
+    color-mix(in oklch, var(--color-base-200) 10%, transparent)
+  );
+  -webkit-backdrop-filter: blur(24px) saturate(160%);
+  backdrop-filter: blur(24px) saturate(160%);
+}
+
+.glass-surface--edge {
+  border-color: color-mix(in oklch, var(--color-base-content) 10%, transparent);
+  box-shadow: inset 1px 0 0 color-mix(in oklch, var(--color-base-100) 18%, transparent);
+}
+
+/* Mobile menu / modal scrim — theme tint, not solid black */
+.glass-scrim {
+  background-color: color-mix(in oklch, var(--color-base-300) 35%, transparent);
+  -webkit-backdrop-filter: blur(4px);
+  backdrop-filter: blur(4px);
 }
 
 .atropos-scale,

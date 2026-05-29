@@ -58,8 +58,8 @@ export default function SignupForm() {
   }, []);
   return (
     <div className="flex flex-col items-center gap-y-5 w-full">
-      <h1 className="text-4xl font-bold uppercase py-2 px-3">
-        Signin as {watch("role")}
+      <h1 className="w-full break-words px-2 py-1 text-center text-xl font-bold uppercase tracking-tight sm:text-2xl md:text-3xl">
+        Sign up as {watch("role")}
       </h1>
       <form
         className="flex flex-col w-full gap-y-5"
@@ -77,7 +77,7 @@ export default function SignupForm() {
               <input
                 type="text"
                 id="firstName"
-                className="capitalize w-full border rounded-full outline-none px-5 py-2.5 peer text-[var(--withdarkinnertext)]"
+                className="capitalize w-full border rounded-full outline-none px-5 py-2.5 peer text-(--withdarkinnertext)"
                 {...register("firstName")}
               />
             </div>
@@ -97,7 +97,7 @@ export default function SignupForm() {
               <input
                 type="text"
                 id="lastName"
-                className="capitalize w-full border rounded-full outline-none px-5 py-2.5 peer text-[var(--withdarkinnertext)]"
+                className="capitalize w-full border rounded-full outline-none px-5 py-2.5 peer text-(--withdarkinnertext)"
                 {...register("lastName")}
               />
             </div>
@@ -120,7 +120,7 @@ export default function SignupForm() {
             <input
               type="text"
               id="email"
-              className="lowercase w-full border rounded-full outline-none px-5 py-2.5 peer text-[var(--withdarkinnertext)]"
+              className="lowercase w-full border rounded-full outline-none px-5 py-2.5 peer text-(--withdarkinnertext)"
               {...register("email")}
             />
           </div>
@@ -142,7 +142,7 @@ export default function SignupForm() {
             <input
               type={!show ? "password" : "text"}
               id="password"
-              className="w-full border rounded-full outline-none px-5 py-2.5 pr-14 peer text-[var(--withdarkinnertext)]"
+              className="w-full border rounded-full outline-none px-5 py-2.5 pr-14 peer text-(--withdarkinnertext)"
               {...register("password")}
             />
             <span className="absolute right-5 top-1/2 -translate-y-1/2 cursor-pointer">
@@ -171,13 +171,13 @@ export default function SignupForm() {
             </span> */}
           <button
             type="submit"
-            className="bg-[var(--color-neutral)] text-[var(--color-neutral-content)] py-3 w-full rounded-full font-bold cursor-pointer"
+            className="bg-neutral text-neutral-content py-3 w-full rounded-full font-bold cursor-pointer"
           >
             Signup
           </button>
-          <p className="text-[var(--lightText)] text-md">
+          <p className="text-(--lightText) text-md">
             Already a user?{" "}
-            <Link to="/login" className="text-[var(--dark-btn)] font-semibold">
+            <Link to="/login" className="text-(--dark-btn) font-semibold">
               Login
             </Link>
           </p>

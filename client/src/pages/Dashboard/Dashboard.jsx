@@ -2,9 +2,10 @@ import { LineChartComp } from '@/components/charts/LineChart'
 import ModelsChart from '@/components/charts/ModelsChart'
 import { WorkflowUsageBar } from '@/components/charts/WorkflowUsageBar'
 import { useAuthStore } from '@/store/useAuthStore'
-import axiosInstance from '@/utils/axiosConfig'
-import { Loader2 } from 'lucide-react'
-import React, { useEffect, useState } from 'react'
+import axiosInstance from "@/utils/axiosConfig";
+import { Loader2 } from "lucide-react";
+import React, { useEffect, useState } from "react";
+import { isSameUser } from "@/utils/resolveUserId";
 
 export default function Dashboard() {
   const {user} = useAuthStore()  
@@ -78,9 +79,11 @@ export default function Dashboard() {
     setLoading(true)
     try {
       const response = await axiosInstance.get("/allWorkflows");
-      const workflows = response.data.filter(workflow => user.role === "Admin" ? true : workflow.user === user._id);
+      const workflows = response.data.filter((workflow) =>
+        user.role === "Admin" ? true : isSameUser(workflow.user, user._id)
+      );
       setWorkflows(workflows);
-      
+      fetchTokenData(workflows);
     } catch (error) {
       console.log(error);
     }finally{
@@ -91,41 +94,36 @@ export default function Dashboard() {
   useEffect(() => {
     fetchWorkflows()
   }, []);
+
+  const pageClass =
+    "mx-auto flex w-full max-w-[1600px] flex-col gap-4 p-4 pb-12 sm:gap-5 sm:p-5 sm:pb-14 lg:gap-6 lg:p-6 lg:pb-16";
+
   return (
     <>
       {
         loading ? (
-          <div className='flex flex-col items-center justify-center h-full w-full p-2 gap-y-2 '>
+          <div className={`${pageClass} min-h-[50vh] items-center justify-center`}>
             <Loader2 size={50} className='animate-spin' />
           </div>
         ) : (
-          
-          <div className='flex flex-col w-full p-2 gap-y-2 h-full'>
-            
-            <div className="grid grid-cols-3 gap-x-4 w-full">
-
-              <div className="flex flex-col col-span-2">
-                <div className="flex flex-col items-center justify-center">
-                  <LineChartComp
-                    data={tokenUsage}
-                    title="Token Usage"
-                    description="Total token usage"
-                    value={`2.1M`}
-                    description2=" $12.50"
-                    tooltipName="Tokens"
-                  />
-                </div>
+          <div className={`${pageClass} min-h-0`}>
+            <div className="grid w-full min-w-0 grid-cols-1 gap-4 lg:grid-cols-3 lg:gap-5">
+              <div className="flex min-w-0 flex-col lg:col-span-2">
+                <LineChartComp
+                  data={tokenUsage}
+                  title="Token Usage"
+                  description="Total token usage"
+                  tooltipName="Tokens"
+                />
               </div>
-              
-              <div className="flex w-full">
+
+              <div className="flex min-w-0 w-full">
                 <ModelsChart />
               </div>
             </div>
-            <div className="grid gap-x-4 w-full h-full">
 
-              <div className="flex w-full h-full col-span-2">
-                <WorkflowUsageBar workflows={workflows}/>
-              </div>
+            <div className="grid w-full min-w-0 gap-4 lg:gap-5">
+              <WorkflowUsageBar workflows={workflows} />
             </div>
           </div>
         )
