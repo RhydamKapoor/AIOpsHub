@@ -36,8 +36,8 @@ export default function Login() {
 
   return (
     <>
-      <div className="flex h-full flex-col items-center justify-center overflow-hidden px-4 py-6">
-        <div className="w-full max-w-md sm:max-w-lg">
+      <div className="relative z-30 flex min-h-full flex-col items-center justify-center px-4 py-6 sm:h-full">
+        <div className="pointer-events-auto w-full max-w-md sm:max-w-lg">
         <AtroposComp prevTab={prevTab} update={update}>
           {tabs.loginInfo ? (
             <LoginForm tabs={tabs} setTabs={setTabs} />

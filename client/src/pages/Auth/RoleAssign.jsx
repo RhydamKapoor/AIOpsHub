@@ -9,8 +9,8 @@ export default function RoleAssign() {
     router(`/signup?role=${name}`)
   }
   return (
-    <div className="flex h-full flex-col items-center justify-center overflow-hidden px-4 py-6">
-      <div className="w-full max-w-lg">
+    <div className="relative z-30 flex min-h-full flex-col items-center justify-center px-4 py-6 sm:h-full">
+      <div className="pointer-events-auto w-full max-w-lg">
       <AtroposComp>
         <div className="flex w-full flex-col items-center justify-center gap-y-7">
           <h1 className="text-2xl font-bold text-center sm:text-4xl">Select your role</h1>

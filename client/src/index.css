@@ -272,6 +272,19 @@ input{
   box-shadow: inset 1px 0 0 color-mix(in oklch, var(--color-base-100) 18%, transparent);
 }
 
+/* Auth / modal cards — frosted panel; content inside stays sharp */
+.glass-surface--card {
+  background: linear-gradient(
+    165deg,
+    color-mix(in oklch, var(--color-base-100) 72%, transparent),
+    color-mix(in oklch, var(--color-base-200) 48%, transparent)
+  );
+  border: 1px solid color-mix(in oklch, var(--color-base-content) 12%, transparent);
+  box-shadow: 0 12px 40px color-mix(in oklch, var(--color-base-content) 8%, transparent);
+  -webkit-backdrop-filter: blur(16px) saturate(150%);
+  backdrop-filter: blur(16px) saturate(150%);
+}
+
 /* Mobile menu / modal scrim — theme tint, not solid black */
 .glass-scrim {
   background-color: color-mix(in oklch, var(--color-base-300) 35%, transparent);
@@ -284,6 +297,7 @@ input{
   pointer-events: none;
 }
 
-.atropos-inner {
+.atropos-inner,
+.my-atropos [data-atropos-offset] {
   pointer-events: auto;
 }
