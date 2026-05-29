@@ -1,5 +1,6 @@
 const User = require("../models/User");
 const nodemailer = require("nodemailer");
+const { clientPath } = require("../utils/clientUrl");
 
 exports.allUsers = async(req, res) => {
     try {
@@ -33,7 +34,7 @@ exports.sendInvitation = async(req, res) => {
               <p>Hi,</p>
               <p>You've been invited to join <strong>AIOpsHub</strong>, your all-in-one platform for AI-powered operations and collaboration.</p>
               <p>Click the button below to accept your invitation and get started:</p>
-              <a href="${process.env.CLIENT_URL}/signup?role=${role}" class="btn">Accept Invitation</a>
+              <a href="${clientPath(`/signup?role=${encodeURIComponent(role)}`)}" class="btn">Accept Invitation</a>
               <p>If you weren't expecting this invitation, feel free to ignore this email.</p>
               <div class="footer">© 2025 AIOpsHub. All rights reserved.</div>
             </div>

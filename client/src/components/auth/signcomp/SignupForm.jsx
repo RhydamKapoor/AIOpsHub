@@ -58,7 +58,7 @@ export default function SignupForm() {
   }, []);
   return (
     <div className="flex flex-col items-center gap-y-5 w-full">
-      <h1 className="w-full break-words px-2 py-1 text-center text-xl font-bold uppercase tracking-tight sm:text-2xl md:text-3xl">
+      <h1 className="w-full wrap-break-word px-2 py-1 text-center text-xl font-bold uppercase tracking-tight sm:text-2xl md:text-3xl">
         Sign up as {watch("role")}
       </h1>
       <form

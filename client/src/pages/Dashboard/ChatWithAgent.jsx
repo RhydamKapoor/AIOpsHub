@@ -1,20 +1,21 @@
 import { RotateCcw, Send } from "lucide-react";
 import { motion } from "motion/react";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import axiosInstance from "@/utils/axiosConfig";
 
 const MAX_HISTORY = 20;
 
-const defaultWelcome =
-  "I'm Opal, your AI assistant. Loading workspace info...";
+const WELCOME_MESSAGE =
+  "I'm Opal, your AI assistant. How can I help?";
+
+const initialMessages = () => [
+  { role: "assistant", content: WELCOME_MESSAGE },
+];
 
 export default function ChatWithAgent() {
-  const [messages, setMessages] = useState([
-    { role: "assistant", content: defaultWelcome },
-  ]);
+  const [messages, setMessages] = useState(initialMessages);
   const [isLoading, setIsLoading] = useState(false);
-  const [isBootstrapping, setIsBootstrapping] = useState(true);
   const messagesEndRef = useRef(null);
   const { register, handleSubmit, setValue, reset } = useForm();
 
@@ -26,53 +27,13 @@ export default function ChatWithAgent() {
     scrollToBottom();
   }, [messages]);
 
-  const loadWelcome = useCallback(async () => {
-    setIsBootstrapping(true);
-    try {
-      const [agentsRes, toolsRes] = await Promise.all([
-        axiosInstance.get("/agents"),
-        axiosInstance.get("/tools"),
-      ]);
-      const agentCount = agentsRes.data?.length ?? 0;
-      const toolCount = toolsRes.data?.length ?? 0;
-      const agentNames = (agentsRes.data || [])
-        .map((a) => a.name)
-        .slice(0, 5)
-        .join(", ");
-
-      setMessages([
-        {
-          role: "assistant",
-          content:
-            agentCount > 0
-              ? `I'm Opal, your AI assistant. This workspace has ${agentCount} agent${agentCount === 1 ? "" : "s"} and ${toolCount} tool${toolCount === 1 ? "" : "s"}${agentNames ? ` (${agentNames}${agentCount > 5 ? ", ..." : ""})` : ""}. I remember our recent messages in this chat — ask me anything!`
-              : `I'm Opal, your AI assistant. This workspace has ${toolCount} tool${toolCount === 1 ? "" : "s"} but no agents yet. I remember our recent messages in this chat — ask me anything!`,
-        },
-      ]);
-    } catch {
-      setMessages([
-        {
-          role: "assistant",
-          content:
-            "I'm Opal, your AI assistant. I remember our recent messages in this chat — how can I help?",
-        },
-      ]);
-    } finally {
-      setIsBootstrapping(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    loadWelcome();
-  }, [loadWelcome]);
-
   const clearChat = () => {
     reset();
-    loadWelcome();
+    setMessages(initialMessages());
   };
 
   const sendQuery = async (data) => {
-    if (data.query.trim() === "" || isLoading || isBootstrapping) return;
+    if (data.query.trim() === "" || isLoading) return;
 
     const userMessage = { role: "user", content: data.query.trim() };
     const historyForApi = messages
@@ -128,7 +89,7 @@ export default function ChatWithAgent() {
           <button
             type="button"
             onClick={clearChat}
-            disabled={isLoading || isBootstrapping}
+            disabled={isLoading}
             className="flex shrink-0 items-center gap-1.5 rounded-lg border border-base-content/15 bg-base-100/50 px-3 py-2 text-xs font-medium transition-colors hover:bg-base-100 disabled:opacity-50 sm:text-sm"
             title="Clear chat memory"
           >
@@ -174,21 +135,15 @@ export default function ChatWithAgent() {
                 id="query"
                 {...register("query")}
                 className="w-full rounded-full border border-base-content/15 bg-base-100/50 py-3 pl-5 pr-14 outline-none focus:border-primary/40 sm:pl-6"
-                disabled={isLoading || isBootstrapping}
-                placeholder={
-                  isBootstrapping
-                    ? "Loading workspace..."
-                    : "Type your message..."
-                }
+                disabled={isLoading}
+                placeholder="Type your message..."
               />
               <button
                 type="submit"
                 className={`absolute right-1.5 top-1/2 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full text-white ${
-                  isLoading || isBootstrapping
-                    ? "bg-gray-400"
-                    : "bg-success/60"
+                  isLoading ? "bg-gray-400" : "bg-success/60"
                 }`}
-                disabled={isLoading || isBootstrapping}
+                disabled={isLoading}
               >
                 <Send size={18} />
               </button>

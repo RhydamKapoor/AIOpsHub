@@ -3,6 +3,7 @@ const bcrypt = require("bcryptjs");
 const nodemailer = require("nodemailer");
 const { SignJWT } = require("jose");
 const { userForToken, resolveUserId } = require("../utils/resolveUserId");
+const { clientPath } = require("../utils/clientUrl");
 
 const JWT_SECRET = new TextEncoder().encode(process.env.JWT_SECRET);
 const ONE_DAY = 24 * 60 * 60 * 1000;
@@ -273,9 +274,7 @@ exports.googleAuthCallback = async (req, res) => {
       path: "/",
     });
 
-    res.redirect(
-      `${process.env.CLIENT_DEV || process.env.CLIENT_PROD}/auth-success`
-    );
+    res.redirect(clientPath("/auth-success"));
   } catch (err) {
     res.status(500).json({ msg: err.message });
   }
@@ -298,9 +297,7 @@ exports.slackAuthCallback = async (req, res) => {
       path: "/",
     });
 
-    res.redirect(
-      `${process.env.CLIENT_DEV || process.env.CLIENT_PROD}/auth-success`
-    );
+    res.redirect(clientPath("/auth-success"));
   } catch (err) {
     res.status(500).json({ msg: err.message });
   }

@@ -155,7 +155,7 @@ export default function HistoryAnalytics() {
                             <span className="text-xs font-semibold uppercase tracking-wide text-base-content/50">
                               Input
                             </span>
-                            <p className="break-words text-sm leading-relaxed sm:text-base">
+                            <p className="wrap-break-word text-sm leading-relaxed sm:text-base">
                               {getWorkflowInput(item)}
                             </p>
                           </div>
@@ -164,7 +164,7 @@ export default function HistoryAnalytics() {
                             <span className="text-xs font-semibold uppercase tracking-wide text-base-content/50">
                               Tools
                             </span>
-                            <p className="break-words text-sm capitalize leading-relaxed sm:text-base">
+                            <p className="wrap-break-word text-sm capitalize leading-relaxed sm:text-base">
                               {toolsUsed.length ? toolsUsed.join(", ") : "None"}
                             </p>
                           </div>
@@ -173,7 +173,7 @@ export default function HistoryAnalytics() {
                             <span className="text-xs font-semibold uppercase tracking-wide text-base-content/50">
                               Output
                             </span>
-                            <p className="max-h-[min(280px,40vh)] overflow-y-auto break-words whitespace-pre-wrap text-sm leading-relaxed sm:text-base lg:max-h-none">
+                            <p className="max-h-[min(280px,40vh)] overflow-y-auto wrap-break-word whitespace-pre-wrap text-sm leading-relaxed sm:text-base lg:max-h-none">
                               {item?.finalResponse || "No response"}
                             </p>
                           </div>

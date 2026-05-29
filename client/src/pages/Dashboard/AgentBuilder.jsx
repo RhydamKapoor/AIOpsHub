@@ -195,7 +195,7 @@ function AgentSidebarCard({ agent, isActive, onSelect, onDelete }) {
               <Wrench className="h-3 w-3 opacity-70" />
               {toolCount} {toolCount === 1 ? "tool" : "tools"}
             </span>
-            <span className="inline-flex rounded-md bg-[var(--color-secondary)]/15 px-2 py-0.5 text-[11px] font-medium text-[var(--color-secondary)]">
+            <span className="inline-flex rounded-md bg-secondary/15 px-2 py-0.5 text-[11px] font-medium text-secondary">
               {llmShortLabel(agent.llm)}
             </span>
           </div>
@@ -780,7 +780,7 @@ export default function AgentBuilder() {
       </section>
 
       {/* Saved agents — collapsible on mobile, sidebar on desktop */}
-      <aside className="order-2 flex min-w-0 w-full shrink-0 flex-col overflow-hidden rounded-2xl border border-base-content/8 bg-[var(--color-base-200)]/50 shadow-lg xl:order-1 xl:w-72">
+      <aside className="order-2 flex min-w-0 w-full shrink-0 flex-col overflow-hidden rounded-2xl border border-base-content/8 bg-base-200/50 shadow-lg xl:order-1 xl:w-72">
         <button
           type="button"
           onClick={() => setAgentsPanelOpen((v) => !v)}

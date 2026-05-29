@@ -104,7 +104,7 @@ export default function ToolTestingArea({
             <span className="text-sm font-medium">Output</span>
             <div className="min-h-[120px] flex-1 overflow-auto rounded-lg border bg-base-100 p-3 text-sm lg:min-h-[160px]">
               {testOutput ? (
-                <pre className="whitespace-pre-wrap break-words font-sans">
+                <pre className="whitespace-pre-wrap wrap-break-word font-sans">
                   {testOutput}
                 </pre>
               ) : (

@@ -16,6 +16,7 @@ const {
 } = require('../controllers/authController');
 const auth = require('../middleware/auth');
 const guest = require('../middleware/guest');
+const { clientPath } = require('../utils/clientUrl');
 
 // Public routes (only accessible to guests)
 router.post("/register", guest, signup);
@@ -25,7 +26,7 @@ router.post("/login", guest, login);
 router.get('/google', passport.authenticate('google', { scope: ['profile', 'email'] }));
 router.get('/google/callback', 
   passport.authenticate('google', { 
-    failureRedirect: `${process.env.CLIENT_DEV || process.env.CLIENT_PROD}/login`,
+    failureRedirect: clientPath('/login'),
     session: false 
   }),
   googleAuthCallback
@@ -47,7 +48,7 @@ router.get('/slack/callback',
     console.log('Slack callback route accessed');
     try {
       passport.authenticate('Slack', { 
-        failureRedirect: `${process.env.CLIENT_DEV || process.env.CLIENT_PROD}/login`,
+        failureRedirect: clientPath('/login'),
         session: false 
       })(req, res, next);
     } catch (error) {
